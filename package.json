@@ -1,0 +1,55 @@
+{
+    "name": "axios-plugins",
+    "version": "0.0.1-dev.2",
+    "description": "[开发中]用最小的侵入性, 为 axios 扩展更多的插件能力 (防抖、节流 等等)",
+    "keywords": [
+        "axios",
+        "plugins"
+    ],
+    "license": "MIT",
+    "sideEffects": false,
+    "author": {
+        "name": "halo951",
+        "url": "https://github.com/halo951"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/halo951/axios-plugins.git"
+    },
+    "bugs": {
+        "url": "https://github.com/halo951/axios-plugins/issues"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.es.js",
+    "typings": "dist/typings/index.d.ts",
+    "scripts": {
+        "clean": "rimraf dist && rimraf typings",
+        "build": "rollup --config ./rollup.config.ts --configPlugin typescript2",
+        "lint:fix": "prettier -w **.ts **.md **.json",
+        "test": "jest"
+    },
+    "peerDependencies": {
+        "axios": "*"
+    },
+    "devDependencies": {
+        "@rollup/plugin-json": "^6.0.0",
+        "@rollup/plugin-terser": "^0.4.3",
+        "@types/jest": "^29.5.1",
+        "@types/node": "^18.15.11",
+        "axios": "^1.4.0",
+        "jest": "^29.5.0",
+        "jest-diff": "^29.5.0",
+        "nock": "^13.3.1",
+        "prettier": "^2.8.8",
+        "rimraf": "^3.0.2",
+        "rollup": "^3.23.0",
+        "rollup-plugin-typescript2": "^0.34.1",
+        "ts-jest": "^29.1.0",
+        "ts-node": "^10.9.1",
+        "tslib": "^2.5.2",
+        "typescript": "^5.0.4"
+    }
+}

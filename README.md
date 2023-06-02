@@ -1,0 +1,112 @@
+# axios-plugins
+
+<h1>开发中, 预计7月份完成</h1>
+
+<p align="center"><a href="./README.md">中文</a> | <a href="./README.en-US.md">English</a></p>
+
+> 用最小的侵入性, 为 axios 扩展更多的插件能力 (防抖、节流 等等)
+
+## 文档
+
+## 使用
+
+-   安装
+
+```bash
+yarn add axios axios-plugins
+# 或
+npm install axios axios-plugins
+```
+
+-   使用插件
+
+```typescript
+import axios from 'axios'
+import { useAxiosPlugin, mock, loading } from 'axios-plugins'
+
+// 1. 定义axios实例 或 使用项目现有的axios实例
+export const request = axios.create({
+    /* ... */
+})
+
+// 2. 为 axios 注入插件能力
+useAxiosPlugin(request)
+    .plugin(mock({ ... }))
+    .plugin(loading({ ... }))
+
+// 3. 注入默认实例
+useAxiosPlugin(axios)
+    // .plugin( ... )
+```
+
+-   创建自定义插件
+
+```typescript
+
+```
+
+## 插件
+
+| 分类     | plugin     | 中文名             | 描述                                                                                   |
+| -------- | ---------- | ------------------ | -------------------------------------------------------------------------------------- |
+| 请求过程 | debounce   | 防抖               | 在一段时间内发起的重复请求, 后执行的请求将等待上次请求完成后再执行                     |
+| 请求过程 | throttle   | 节流               | 在一段时间内发起的重复请求, 后执行的请求将被抛弃                                       |
+| 请求过程 | merge      | 合并               | 在一段时间内发起的重复请求, 仅请求一次, 并将请求结果分别返回给不同的发起者             |
+| 请求过程 | retry      | 失败重试           | 当请求失败(出错)后, 重试 n 次, 当全部失败时, 再抛出异常                                |
+| 请求过程 | interrupt  | 中断               | 指定什么情况下终止请求, 一般用来处理页面切换时, 终止未完成的请求使用                   |
+| 请求过程 | offline    | 弱网暂存(离线请求) | 提供弱网环境下, 当网络不佳或页面终止、退出场景下, 再下次进入页面时, 对未完成请求重放   |
+| 请求过程 | queue      | 请求队列           | 通过一定条件限制, 针对某些接口, 通过逐条消费方式, 进行请求                             |
+| 预处理   | pathParams | 路由参数处理       | 扩展对 Restful API 规范的路由参数支持                                                  |
+| 预处理   | filter     | 参数过滤           | 扩展对 Restful API 规范的路由参数支持                                                  |
+| 预处理   | sign       | 参数签名           | 提供请求防篡改能力, 这个功能需要搭配后端逻辑实现                                       |
+| 工具     | logger     | 日志               | 自定义请求过程日志打印                                                                 |
+| 工具     | mock       | 模拟(调试用)       | 提供全局或单个接口请求 mock 能力                                                       |
+| 工具     | loading    | 全局 loading       | 提供全局 loading 统一控制能力, 减少每个加载方法都需要独立 loading 控制的工作量         |
+| 工具     | onlySend   | 仅发送             | 对 `navigator.sendBeacon` 方法的封装, 实现页面离开时的埋点数据提交, 但这个需要后端支持 |
+| 适配器   | mp         | 小程序请求适配器   | 扩展对微信、头条、qq 等小程序请求的支持                                                |
+
+### features
+
+-   noNullParams | 空值过滤 | 过滤值为空的参数, 避免特定情况下参数出错 (上面的 filter 插件)
+-   socket-proxy | socket 代理 | 通过 websocket 通道, 处理请求调用
+-   autoEnv | 根据运行环境, 指定请求的 baseUrl
+
+## 插件接口
+
+### debounce | 防抖
+
+-   描述
+
+    在一段时间内发起的重复请求, 后执行的请求将等待上次请求完成后再执行
+
+-   使用场景
+
+-   参数
+
+```typescript
+export interface IDebounceOptions {}
+```
+
+### mock | 客户端 mock
+
+-   接口
+-   参数
+-   使用场景
+-   使用方式
+
+## 插件组合方案
+
+## FAQ
+
+1. `防抖`, `节流`, `合并` 这 3 个并发控制方案要如何选择？
+
+`合并(merge)` 是对 `节流(throttle)` 的优化, 如果没有特殊要求, 那么一般建议使用 `合并(merge)` 替代 `节流(throttle)` 即可. 原因上, `合并(merge)` 插件仅影响请求过程, 而对于请求发起者的(发起, 接收响应结果) 没有产生影响. 不需要添加额外的失败处理代码.
+
+`防抖(debounce)` 则是对上面两种插件的补充, 特定于处理 `提交类型的请求 (submit request)`
+
+## 参考及感谢
+
+-   [axios](https://axios-http.com/)
+-   [axios-extensions](https://github.com/kuitos/axios-extensions)
+-   [alova](https://github.com/alovajs/alova/)
+-   [ahooks](https://ahooks.gitee.io/zh-CN/hooks/use-request/index)

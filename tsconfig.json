@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "strict": false,
+        "types": [
+            "node",
+            "jest"
+        ],
+        "target": "ES5",
+        "lib": [
+            "ESNext",
+            "dom"
+        ],
+        "sourceMap": true,
+        "outDir": "dist",
+        "declaration": true,
+        "declarationDir": "dist/typings",
+        "moduleResolution": "nodenext",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
+}
