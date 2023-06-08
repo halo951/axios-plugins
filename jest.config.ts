@@ -5,5 +5,5 @@ export default <Config>{
     collectCoverage: false,
     coverageDirectory: '.coverage',
     testRegex: ['__tests__/.+?.spec.ts'],
-    coveragePathIgnorePatterns: ['src/plugins/*']
+    // coveragePathIgnorePatterns: ['src/plugins/*']
 }
