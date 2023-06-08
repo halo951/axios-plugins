@@ -1,10 +1,11 @@
 import { RollupOptions } from 'rollup'
 import typescript from 'rollup-plugin-typescript2'
-import terser from '@rollup/plugin-terser'
+// import terser from '@rollup/plugin-terser'
 import fs from 'node:fs'
 const pkg = JSON.parse(fs.readFileSync('package.json', { encoding: 'utf-8' }))
 
 const banner: string = `
+// @ts-ignore
 /** 
  * ${pkg.name}@${pkg.version}
  * 
@@ -36,9 +37,9 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
                     strictNullChecks: true,
                     strictPropertyInitialization: true
                 }
-            }),
+            })
             // 压缩
-            terser()
+            // terser()
         ],
         output: [
             // output to cjs

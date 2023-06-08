@@ -6,6 +6,9 @@
         "axios",
         "plugins"
     ],
+    "engines": {
+        "node": ">=16"
+    },
     "license": "MIT",
     "sideEffects": false,
     "author": {
@@ -49,7 +52,10 @@
         "rollup-plugin-typescript2": "^0.34.1",
         "ts-jest": "^29.1.0",
         "ts-node": "^10.9.1",
-        "tslib": "^2.5.2",
+        "tslib": "^2.5.3",
         "typescript": "^5.0.4"
+    },
+    "dependencies": {
+        "klona": "^2.0.6"
     }
 }

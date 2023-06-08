@@ -6,8 +6,6 @@
 
 > 用最小的侵入性, 为 axios 扩展更多的插件能力 (防抖、节流 等等)
 
-## 文档
-
 ## 使用
 
 -   安装
@@ -30,19 +28,71 @@ export const request = axios.create({
 })
 
 // 2. 为 axios 注入插件能力
+// TIPS: 需要注意的是, 为了从拦截器中获取原始的响应数据, `useAxiosPlugin` 将覆盖 `interceptors` 的实现.
 useAxiosPlugin(request)
-    .plugin(mock({ ... }))
-    .plugin(loading({ ... }))
+    // 添加插件
+    .plugin(mock({}))
+    .plugin(loading({}))
 
-// 3. 注入默认实例
+// 3. 为 默认实例注入插件能力
 useAxiosPlugin(axios)
-    // .plugin( ... )
+    // 添加插件
+    .plugin(mock({}))
+    .plugin(loading({}))
+```
+
+-   使用了`axios({ ... })` 调用接口
+
+> 由于 `Object.defineProperties` 的局限性, 无法覆盖 axios 的原型链方法, 所以需要通过包装函数重新实现`axios.apply`
+
+```typescript
+import axios from 'axios'
+import { useAxiosPlugin } from 'axios-plugins'
+let request = axios.create({
+    /* ... */
+})
+
+request = useAxiosPlugin(request)
+    // 通过 wrap 方法替换包装函数, 需要注意的是, 包装函数是一个替换操作, 需要使用返回的新对象发起请求
+    .wrap()
+exports.request = request
 ```
 
 -   创建自定义插件
 
 ```typescript
+import axios from 'axios'
+import { useAxiosPlugin, IPlugin } from 'axios-plugins'
 
+export interface IPlugOptions {
+    /**
+     * 指定哪些接口包含
+     */
+    includes?: FilterPattern
+    /**
+     * 指定哪些接口应忽略
+     */
+    excludes?: FilterPattern
+}
+
+/** 定义插件 */
+const plug = (options: unknown): IPlugin => {
+    // @ 定义url路径过滤器
+    const filter = createUrlFilter(options.includes, options.excludes)
+    return {
+        name: '插件名',
+        lifecycle: {
+            /** 通过不同的hooks的组合, 扩展更多的插件能力 */
+        }
+    }
+}
+
+export const request = axios.create({
+    /* ... */
+})
+
+// 使用自定义插件
+useAxiosPlugin(request).plugin(plug({}))
 ```
 
 ## 插件
@@ -53,7 +103,7 @@ useAxiosPlugin(axios)
 | 请求过程 | throttle   | 节流               | 在一段时间内发起的重复请求, 后执行的请求将被抛弃                                       |
 | 请求过程 | merge      | 合并               | 在一段时间内发起的重复请求, 仅请求一次, 并将请求结果分别返回给不同的发起者             |
 | 请求过程 | retry      | 失败重试           | 当请求失败(出错)后, 重试 n 次, 当全部失败时, 再抛出异常                                |
-| 请求过程 | interrupt  | 中断               | 指定什么情况下终止请求, 一般用来处理页面切换时, 终止未完成的请求使用                   |
+| 请求过程 | cancelAll  | 取消所有的请求     | 取消当前实例下所有在进行的请求                                                         |
 | 请求过程 | offline    | 弱网暂存(离线请求) | 提供弱网环境下, 当网络不佳或页面终止、退出场景下, 再下次进入页面时, 对未完成请求重放   |
 | 请求过程 | queue      | 请求队列           | 通过一定条件限制, 针对某些接口, 通过逐条消费方式, 进行请求                             |
 | 预处理   | pathParams | 路由参数处理       | 扩展对 Restful API 规范的路由参数支持                                                  |
@@ -67,9 +117,11 @@ useAxiosPlugin(axios)
 
 ### features
 
+-   env | 根据条件, 自动选取 baseUrl 配置
 -   noNullParams | 空值过滤 | 过滤值为空的参数, 避免特定情况下参数出错 (上面的 filter 插件)
 -   socket-proxy | socket 代理 | 通过 websocket 通道, 处理请求调用
 -   autoEnv | 根据运行环境, 指定请求的 baseUrl
+-   tokenExpiration | token 过期, 处理当登录态失效后行为
 
 ## 插件接口
 
@@ -98,7 +150,33 @@ export interface IDebounceOptions {}
 
 ## FAQ
 
-1. `防抖`, `节流`, `合并` 这 3 个并发控制方案要如何选择？
+1. 插件的生命周期
+
+参考: [src/intf.ts](src/intf.ts#37)
+
+1. 插件实现机制
+
+`axios-plugins` 仿照 `decorator (装饰器)` 的机制, 包裹了 `axios` 实例的 request 方法, 从而提供插件能力扩展.
+
+也就是说, `axios-plugins` 的生命周期如下图所示:
+
+-   `axios-plugins`
+
+    -   (`transform.request`) 执行插件的请求预处理方法
+
+-   `axios`
+
+    -   (`interceptors.request`) 执行请求拦截器, 处理请求参数
+    -   (`dispatchRequest`) 执行请求
+    -   (`interceptors.response`) 执行响应拦截器, 处理响应数据
+
+-   `axios-plugins`
+
+    -   (`transform.response`) 执行插件的响应后处理方法
+
+之所以这么设计, 主要因为
+
+3. `防抖`, `节流`, `合并` 这 3 个并发控制方案要如何选择？
 
 `合并(merge)` 是对 `节流(throttle)` 的优化, 如果没有特殊要求, 那么一般建议使用 `合并(merge)` 替代 `节流(throttle)` 即可. 原因上, `合并(merge)` 插件仅影响请求过程, 而对于请求发起者的(发起, 接收响应结果) 没有产生影响. 不需要添加额外的失败处理代码.
 
