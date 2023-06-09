@@ -2,7 +2,4 @@ node_modules/
 .coverage/
 .temp/
 .cache/
-src/
-__src__/
-__md__/
-apifox.rule.json
+__notes__/
