@@ -58,9 +58,7 @@ export const mock = (options: IMockOptions & { enable: boolean | 'webpack' }): I
             Object.assign(options, axios.defaults['mock'])
             // ? 校验必要参数配置
             if (!options.mockUrl) {
-                throw new Error(
-                    `headers 中似乎并没有配置 'mockURL', 请通过 配置 'headers: { mockURL:''}' 或 使用 env() 插件启用mock能力`
-                )
+                throw new Error(`headers 中似乎并没有配置 'mockURL'`)
             }
         },
         lifecycle: {
@@ -71,15 +69,15 @@ export const mock = (options: IMockOptions & { enable: boolean | 'webpack' }): I
                     }
                     // mock 启用条件
                     // 条件1: `enable === true`
-                    // 条件2: `config.mock === true`
-                    if (origin.mock === false || options.mock === false) {
+                    // 条件2: `config.mock === true` or `options.mock === true`
+                    let mock = origin.mock ?? options.mock
+                    if (typeof mock === 'boolean') {
+                        return mock
+                    } else if (typeof mock === 'object') {
+                        return mock.mock
+                    } else {
+                        return false
                     }
-                    if (origin.mock === true || (typeof origin.mock === 'object' && origin.mock.mock)) {
-                        return true
-                    }
-                    const { enable } = options
-                    const { mock: enableMock } = config
-                    return !!enable && !!enableMock
                 },
                 handler: (config) => {
                     const { mockUrl } = options
