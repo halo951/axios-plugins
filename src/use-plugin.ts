@@ -61,14 +61,19 @@ class AxiosExtension extends Axios {
             return getHook(hookName).length > 0
         }
 
-        /** 触发钩子函数 */
+        /**
+         * 触发钩子函数
+         * @description 遵循先进先出原则触发插件钩子
+         */
         const runHook = async <K extends keyof IPlugin['lifecycle'], T>(
             hookName: K,
+            reverse: boolean,
             arg1: T,
             arg2: unknown,
             arg3: AbortChainController
         ): Promise<T> => {
-            for (const hook of getHook(hookName)) {
+            let hooks = reverse ? getHook(hookName).reverse() : getHook(hookName)
+            for (const hook of hooks) {
                 if (hook.runWhen.call(hook.runWhen, arg1, arg2)) {
                     arg1 = await hook.handler.call(hook, ...(arg2 ? [arg1, arg2, arg3] : [arg1, arg3]))
                 }
@@ -80,21 +85,21 @@ class AxiosExtension extends Axios {
             const origin: AxiosRequestConfig<D> = klona(config)
             const share: IHooksShareOptions = { origin, shared: this.__shared__, axios: vm as unknown as AxiosInstance }
             return await createAbortChain(config)
-                .next((config, controller) => runHook('preRequestTransform', config, share, controller))
+                .next((config, controller) => runHook('preRequestTransform', false, config, share, controller))
                 .next((config) => <PromiseLike<R>>originRequest.call(vm, config))
-                .next((response, controller) => runHook('postResponseTransform', response, share, controller))
+                .next((response, controller) => runHook('postResponseTransform', true, response, share, controller))
                 .capture(async (e, controller) => {
                     // ? 如果添加了捕获异常钩子, 那么当钩子函数 `return void` 时, 将返回用户原始响应信息
                     // 否则应通过 `throw error` 直接抛出异常或 `return error` 触发下一个 `captureException` 钩子
                     if (hasHook('captureException')) {
                         // # 添加捕获异常钩子 (运行后直接抛出异常)
-                        return await runHook('captureException', e, share, controller)
+                        return await runHook('captureException', true, e, share, controller)
                     } else {
                         throw e
                     }
                 })
                 .completed(
-                    (controller) => runHook('completed', share, undefined, controller) as unknown as Promise<void>
+                    (controller) => runHook('completed', true, share, undefined, controller) as unknown as Promise<void>
                 )
                 .done()
         }

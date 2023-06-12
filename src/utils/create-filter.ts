@@ -2,13 +2,8 @@ type Matcher = { test: (url: string) => boolean }
 
 export type Filter = (url: string) => boolean
 
-export type FilterPattern =
-    | ReadonlyArray<string | RegExp | ((url: string) => boolean)>
-    | string
-    | RegExp
-    | ((url: string) => boolean)
-    | null
-    | undefined
+export type FilterPatternType = string | boolean | RegExp | ((url: string) => boolean) | null | undefined
+export type FilterPattern = ReadonlyArray<FilterPatternType> | FilterPatternType
 
 const getMatchers = (fp: FilterPattern): Array<Matcher> => {
     fp = fp instanceof Array ? fp : [fp]
@@ -20,12 +15,10 @@ const getMatchers = (fp: FilterPattern): Array<Matcher> => {
             } else if (typeof rule === 'function') {
                 return { test: rule }
             } else if (typeof rule === 'string') {
-                return {
-                    // match id in url
-                    test(url: string): boolean {
-                        return url.includes(rule)
-                    }
-                }
+                // match id in url
+                return { test: (url: string) => url.includes(rule) }
+            } else if (typeof rule === 'boolean') {
+                return { test: () => rule }
             } else {
                 throw new TypeError('请检查 `includes`, `excludes` 配置')
             }
@@ -44,7 +37,9 @@ export const createUrlFilter = (include?: FilterPattern, exclude?: FilterPattern
         }
         // ? 判断是否包含
         for (const matcher of includeMatchers) {
-            if (matcher.test(url)) return true
+            if (matcher.test(url)) {
+                return true
+            }
         }
         return false
     }

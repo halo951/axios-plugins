@@ -1,8 +1,8 @@
 import { AxiosResponse } from 'axios'
 import { IHooksShareOptions, IPlugin, ISharedCache } from '../../intf'
 import { createOrGetCache } from '../../utils/create-cache'
-import { createUrlFilter, FilterPattern } from '../../utils/create-filter'
-import { defaultCalcRequestHash } from '../../utils/calc-hash'
+import { createUrlFilter, Filter, FilterPattern } from '../../utils/create-filter'
+import { defaultCalcRequestHash as crh } from '../../utils/calc-hash'
 declare module 'axios' {
     interface CreateAxiosDefaults {
         /** 配置重试策略 */
@@ -10,13 +10,13 @@ declare module 'axios' {
     }
     interface AxiosRequestConfig {
         /**
-         * 接口请求失败重试次数
+         * 接口请求失败重试规则
          *
          * @description
          *  - 需要注册 `retry()` 插件, 指示接口请求失败后, 重试几次
          *  - 设置为 0 时, 禁用重试功能
          */
-        retry?: number
+        retry?: number | Pick<IRetryOptions, 'max' | 'isExceptionRequest'>
     }
 }
 
@@ -26,6 +26,10 @@ export interface IRetryOptions {
      * 指定哪些接口包含
      */
     includes?: FilterPattern
+    /**
+     * 指定哪些接口应忽略
+     */
+    excludes?: FilterPattern
 
     /**
      * 最大重试次数
@@ -42,7 +46,7 @@ export interface IRetryOptions {
     isExceptionRequest?: (response: AxiosResponse, options: IHooksShareOptions) => boolean
 }
 
-interface IRetrySharedCache extends ISharedCache {
+interface SharedCache extends ISharedCache {
     retry: {
         [hash: string]: number
     }
@@ -57,39 +61,66 @@ class RetryError extends Error {
  *
  * @description 当请求失败(出错)后, 重试 n 次, 当全部失败时, 再抛出异常.
  *
- * 注:
  */
 export const retry = (options: IRetryOptions): IPlugin => {
-    // @ 定义url路径过滤器
-    const filter = createUrlFilter(options.includes ?? [() => false])
-    // @ 计算请求hash
-    const calcRequstHash = defaultCalcRequestHash
+    /** 触发检查 */
+    const runWhen = <V>(_: V, { origin }: IHooksShareOptions): boolean => {
+        if (typeof origin['retry'] === 'boolean') {
+            return origin['retry']
+        } else {
+            const filter: Filter = createUrlFilter(options.includes, options.excludes)
+            return filter(origin.url)
+        }
+    }
     return {
         name: 'retry',
         enforce: 'post',
+        beforeRegister(axios) {
+            // 参数合并
+            Object.assign(options, axios.defaults['retry'])
+        },
         lifecycle: {
             postResponseTransform: {
-                runWhen(_, { origin }) {
-                    return !!options.isExceptionRequest && filter(origin.url)
+                runWhen(_, opts) {
+                    if (!runWhen(_, opts)) return false
+                    if (typeof opts.origin.retry === 'object') {
+                        return !!opts.origin.retry.isExceptionRequest
+                    } else {
+                        return !!options.isExceptionRequest
+                    }
                 },
-                handler(response, opt) {
-                    const isException = options.isExceptionRequest(response, opt)
-                    if (isException) {
+                handler(response, opts) {
+                    let isExceptionRequest: IRetryOptions['isExceptionRequest']
+                    if (typeof opts.origin.retry === 'object') {
+                        isExceptionRequest = opts.origin.retry.isExceptionRequest
+                    } else {
+                        isExceptionRequest = options.isExceptionRequest
+                    }
+                    // > 通过自定义的异常判断方法, 判断请求是否需要重试
+                    if (isExceptionRequest(response, opts)) {
                         throw new RetryError()
                     }
                     return response
                 }
             },
             captureException: {
-                runWhen(_, { origin }) {
-                    return filter(origin.url)
-                },
+                runWhen,
                 async handler(reason, { origin, shared, axios }) {
-                    const hash: string = calcRequstHash(origin)
+                    // @ 计算请求hash
+                    const hash: string = crh(origin)
                     // @ 从共享内存中创建或获取缓存对象
-                    const cache: IRetrySharedCache['retry'] = createOrGetCache(shared, 'retry')
-                    const max: number = origin.retry ?? options.max
-                    // ? 判断请求已达到最大重试次数
+                    const cache: SharedCache['retry'] = createOrGetCache(shared, 'retry')
+                    // @ 获取最大重试次数
+                    let max: number
+                    if (typeof origin.retry === 'object') {
+                        max = origin.retry.max
+                    } else if (typeof origin.retry === 'number') {
+                        max = origin.retry
+                    } else {
+                        max = options.max
+                    }
+                    max = max ?? 0
+                    // ? 判断请求已达到最大重试次数, 达到时抛出异常.
                     if (cache[hash] && cache[hash] >= max) {
                         // 删除重试记录
                         delete cache[hash]

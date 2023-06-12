@@ -45,7 +45,7 @@ export interface IDebounceOptions {
     /** 自定义: 计算请求 hash 值
      *
      * @description 定制重复请求检查方法, 当请求hash值相同时, 判定两个请求为重复请求.
-     * @default | 默认公式: f(url, data, params) => hash
+     * @default ``` f(url, data, params) => hash ```
      */
     calcRequstHash?: <D>(config: AxiosRequestConfig<D>) => string
 }
