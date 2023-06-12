@@ -7,11 +7,9 @@ import {
     Axios,
     AxiosDefaults
 } from 'axios'
-import type { AxiosInstanceExtension, IHooksShareOptions, IPlugin, ISharedCache } from './intf'
+import type { AxiosInstanceExtension, ILifecycleHookObject, IPlugin, ISharedCache } from './intf'
 import { klona } from 'klona'
-
-/** 触发钩子函数 */
-const emitHooks = () => {}
+import { AbortChainController, createAbortChain } from './utils/create-abort-chain'
 
 /**
  * Axios 实例扩展
@@ -41,70 +39,65 @@ class AxiosExtension extends Axios {
         const originRequest = this.request
         const vm = this
 
-        /** 判断是否存在钩子 */
+        /** 获取钩子函数 */
+        const getHook = <K extends keyof IPlugin['lifecycle']>(hookName: K) => {
+            return this.__plugins__
+                .filter((plug) => !!plug.lifecycle[hookName])
+                .map((plug) => {
+                    const hook: IPlugin['lifecycle'][K] = plug.lifecycle[hookName]
+                    if (typeof hook === 'function') {
+                        return {
+                            runWhen: () => true,
+                            handler: hook
+                        } as ILifecycleHookObject<any>
+                    } else {
+                        return hook as ILifecycleHookObject<any>
+                    }
+                })
+        }
+
+        /** 是否存在钩子 */
         const hasHook = <K extends keyof IPlugin['lifecycle']>(hookName: K): boolean => {
-            return !!this.__plugins__.find((plug) => plug.lifecycle && plug.lifecycle[hookName])
+            return getHook(hookName).length > 0
         }
 
         /** 触发钩子函数 */
         const runHook = async <K extends keyof IPlugin['lifecycle'], T>(
             hookName: K,
             arg1: T,
-            arg2: unknown
+            arg2: unknown,
+            arg3: AbortChainController
         ): Promise<T> => {
-            for (const plug of this.__plugins__) {
-                const hook = plug.lifecycle && plug.lifecycle[hookName]
-                if (typeof hook === 'function') {
-                    arg1 = await hook.call(hook, arg1, arg2)
-                } else if (typeof hook === 'object') {
-                    if (hook.runWhen.call(hook.runWhen, arg1, arg2)) {
-                        arg1 = await hook.handler.call(hook, arg1, arg2)
-                    }
+            for (const hook of getHook(hookName)) {
+                if (hook.runWhen.call(hook.runWhen, arg1, arg2)) {
+                    arg1 = await hook.handler.call(hook, ...(arg2 ? [arg1, arg2, arg3] : [arg1, arg3]))
                 }
             }
             return arg1
         }
-        this.request = async function (config) {
-            let response: AxiosResponse
-            let origin: AxiosRequestConfig
-            let shareOptions: IHooksShareOptions
-            try {
-                // @ 备份请求参数
-                origin = klona(config)
-                // @ 拼接请求过程共享数据
-                shareOptions = { origin: origin, shared: this.__shared__ }
-                // # 添加前置钩子 (预处理请求内容)
-                config = await runHook('preRequestTransform', config, shareOptions)
-                // > 执行
-                response = await originRequest.call(vm, config)
-                // # 添加后置钩子
-                response = await runHook('postResponseTransform', response, shareOptions)
-                return response as any
-            } catch (e) {
-                // ? 如果添加了捕获异常钩子, 那么当钩子函数 `return void` 时, 将返回用户原始响应信息
-                // 否则应通过 `throw error` 直接抛出异常或 `return error` 触发下一个 `captureException` 钩子
-                if (hasHook('captureException')) {
-                    // # 添加捕获异常钩子 (运行后直接抛出异常)
-                    return await runHook('captureException', e, shareOptions)
-                }
-                throw e
-            } finally {
-                // # 添加(请求完成)后置钩子
-                await runHook('completed', shareOptions, undefined)
-            }
-        }
 
-        // > 添加拦截器
-        // [TIPS]
-        //  1. 由于 `axios` 的拦截器功能仅允许 push, 此时的 `transformRequest`, `transformResponse` 钩子可能获取到的不是原始的参数或者响应
-        //  2. 如果插件需要使用原始参数、响应 信息, 需要提示用户移除现有拦截器, 并通过插件来扩展其他能力
-        //  3. `axios-plugins` 中是不会去处理已有拦截器执行过程异常, 但这些异常或者插件错误可以通过 `captureException` 钩子捕获
-        this.interceptors.request.use((config) => {
-            return runHook('transformRequest', config, this.__shared__)
-        }, null)
-        this.interceptors.response.use((response) => {
-            return runHook('transformResponse', response, this.__shared__)
-        }, null)
+        this.request = async function <T = any, R = AxiosResponse<T>, D = any>(config: AxiosRequestConfig<D>) {
+            const origin: AxiosRequestConfig<D> = klona(config)
+            const share = { origin, shared: this.__shared__ }
+            return await createAbortChain(config)
+                .next((config, controller) => runHook('preRequestTransform', config, share, controller))
+                .next((config) => <PromiseLike<R>>originRequest.call(vm, config))
+                .next((response, controller) => runHook('postResponseTransform', response, share, controller))
+                .capture(async (e, controller) => {
+                    // ? 如果添加了捕获异常钩子, 那么当钩子函数 `return void` 时, 将返回用户原始响应信息
+                    // 否则应通过 `throw error` 直接抛出异常或 `return error` 触发下一个 `captureException` 钩子
+                    if (hasHook('captureException')) {
+                        // # 添加捕获异常钩子 (运行后直接抛出异常)
+                        return await runHook('captureException', e, share, controller)
+                    } else {
+                        throw e
+                    }
+                })
+                .completed(
+                    (controller) => runHook('completed', share, undefined, controller) as unknown as Promise<void>
+                )
+                .done()
+        }
     }
 }
 
@@ -181,9 +174,9 @@ export const useAxiosPlugin = (axios: AxiosInstance) => {
             return this
         },
         /**
-         * 替换`axios`包装
+         * 包装 `axios({ ... })`
          *
-         * @description 如果使用的有 `axios({ ... })` 方式调用接口, 那么需要通过
+         * @description 使 `axiox({ ... })` 具备插件能力
          */
         wrap(): AxiosInstance {
             return new Proxy(axios, {

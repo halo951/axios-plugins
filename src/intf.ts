@@ -1,13 +1,7 @@
 import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import { AbortChainController } from './utils/create-abort-chain'
 
 declare module 'axios' {
-    interface AxiosInterceptorManager<V> {
-        handles: Array<{
-            fulfilled?: (value: V) => V | Promise<V>
-            rejected?: (error: any) => any
-        }>
-    }
-
     interface AxiosRequestConfig {
         /**
          * 接口 mock 请求标识符
@@ -26,14 +20,6 @@ export interface ISharedCache {
     [key: string]: any
 }
 
-/** 钩子共享参数 */
-export interface IHooksShareOptions {
-    /** 原始请求参数 */
-    readonly origin: AxiosRequestConfig
-    /** 实例共享缓存 */
-    readonly shared: ISharedCache
-}
-
 /** axios 扩展属性 */
 export interface IAxiosPluginExtension {
     /** 已添加的插件集合 */
@@ -45,12 +31,30 @@ export interface IAxiosPluginExtension {
 /** 扩展 axios 实例 */
 export type AxiosInstanceExtension = AxiosInstance & IAxiosPluginExtension
 
-export type ILifecycleHook<P, R> =
-    | ((...args: [P, R]) => P | Promise<P>)
-    | {
-          runWhen: (...args: [P, R]) => boolean
-          handler: (...args: [P, R]) => P | Promise<P>
-      }
+/** 钩子共享参数 */
+export type IHooksShareOptions = {
+    /** 原始请求参数 */
+    readonly origin: AxiosRequestConfig
+    /** 实例共享缓存 */
+    readonly shared: ISharedCache
+}
+
+export enum ENext {
+    next = 'next'
+}
+
+export type ILifecycleHookFunction<V> = (
+    value: V,
+    options: IHooksShareOptions,
+    controller: AbortChainController
+) => V | Promise<V>
+
+export type ILifecycleHookObject<V> = {
+    runWhen: (value: V, options: IHooksShareOptions) => boolean
+    handler: ILifecycleHookFunction<V>
+}
+
+export type ILifecycleHook<V> = ILifecycleHookFunction<V> | ILifecycleHookObject<V>
 
 /** 插件接口 */
 export interface IPlugin {
@@ -67,39 +71,33 @@ export interface IPlugin {
      */
     beforeRegister?: (axios: AxiosInstanceExtension) => void
 
-    /** 插件声明周期钩子函数 */
+    /** 插件声明周期钩子函数
+     *
+     * @description 为了不对原有的axios实例产生影响,
+     */
     lifecycle?: {
         /**
          * 在 `axios.request` 调用前触发钩子
          */
-        preRequestTransform?: ILifecycleHook<AxiosRequestConfig, IHooksShareOptions>
+        preRequestTransform?: ILifecycleHook<AxiosRequestConfig>
         /**
-         * 转换请求参数钩子 (在 `axios` 拦截器触发阶段, 处理请求参数转换)
-         *
-         * @description 由于要遵循`axios.AxiosInterceptorManager` 拦截器注册机制, 所以钩子的触发时机取决于何时调用了 `useAxiosPlugin()` 方法.
+         * 响应后触发钩子
          */
-        transformRequest?: ILifecycleHook<InternalAxiosRequestConfig, ISharedCache>
-        /**
-         * 转换请求结果钩子 (在 `axios` 拦截器触发阶段, 处理响应结果转换)
-         *
-         * @description
-         *      由于要遵循`axios.AxiosInterceptorManager` 拦截器注册机制, 所以钩子的触发时机取决于何时调用了 `useAxiosPlugin()` 方法.
-         *      另外 `axios` 的实现机制中, 当 `dispatchRequest` 失败后, 将直接返回异常, 可能会导致 `transformResponse` 无法被触发
-         */
-        transformResponse?: ILifecycleHook<AxiosResponse, ISharedCache>
-        /**
-         * 响应之后进行处理
-         */
-        postResponseTransform?: ILifecycleHook<AxiosResponse, IHooksShareOptions>
+        postResponseTransform?: ILifecycleHook<AxiosResponse>
         /**
          * 捕获异常钩子
          *
          * @description 这是一个特殊钩子, 将阻塞异常反馈, 并在钩子函数完成后, 返回正常结果. 如果需要抛出异常, 那么应通过 `throw Error` 方式, 抛出异常信息.
          */
-        captureException?: ILifecycleHook<Error | AxiosError | any, IHooksShareOptions>
+        captureException?: ILifecycleHook<Error | AxiosError | any>
         /**
          * 请求完成后置钩子
          */
-        completed?: ILifecycleHook<IHooksShareOptions, void>
+        completed?:
+            | ((options: IHooksShareOptions, controller: AbortChainController) => void | Promise<void>)
+            | {
+                  runWhen: (options: IHooksShareOptions) => boolean
+                  handler: (options: IHooksShareOptions, controller: AbortChainController) => void | Promise<void>
+              }
     }
 }

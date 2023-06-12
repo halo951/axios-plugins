@@ -216,8 +216,6 @@ describe('测试 `useAxiosPlugin()`', () => {
             name: 'plug',
             lifecycle: {
                 preRequestTransform: jest.fn((arg0: any) => arg0),
-                transformRequest: jest.fn((arg0: any) => arg0),
-                transformResponse: jest.fn((arg0: any) => arg0),
                 postResponseTransform: jest.fn((arg0: any) => arg0),
                 completed: jest.fn()
             }
@@ -226,8 +224,6 @@ describe('测试 `useAxiosPlugin()`', () => {
         useAxiosPlugin(request).plugin(plug)
         await request.get('/success')
         expect(plug.lifecycle?.preRequestTransform).toBeCalledTimes(1)
-        expect(plug.lifecycle?.transformRequest).toBeCalledTimes(1)
-        expect(plug.lifecycle?.transformResponse).toBeCalledTimes(1)
         expect(plug.lifecycle?.postResponseTransform).toBeCalledTimes(1)
         expect(plug.lifecycle?.completed).toBeCalledTimes(1)
     })
@@ -242,24 +238,14 @@ describe('测试 `useAxiosPlugin()`', () => {
                     expect(step).toBe(1)
                     return config
                 },
-                transformRequest: (config) => {
-                    step++
-                    expect(step).toBe(2)
-                    return config
-                },
-                transformResponse: (response) => {
-                    step++
-                    expect(step).toBe(3)
-                    return response
-                },
                 postResponseTransform: (response) => {
                     step++
-                    expect(step).toBe(4)
+                    expect(step).toBe(2)
                     return response
                 },
                 completed: () => {
                     step++
-                    expect(step).toBe(5)
+                    expect(step).toBe(3)
                 }
             }
         }
@@ -297,16 +283,6 @@ describe('测试 `useAxiosPlugin()`', () => {
                     checkShared(shared)
                     return config
                 },
-                transformRequest: (config, shared) => {
-                    checkConfigValue(config)
-                    checkShared(shared)
-                    return config
-                },
-                transformResponse: (response, shared) => {
-                    checkShared(shared)
-                    expect(response.data).toEqual({ result: 'success' })
-                    return response
-                },
                 postResponseTransform: (response, { shared, origin }) => {
                     checkConfigValue(origin)
                     checkShared(shared)
@@ -324,45 +300,10 @@ describe('测试 `useAxiosPlugin()`', () => {
         await request.get('/success', { data: { a: 1 } })
     })
 
-    test('valid - 验证请求过程中, 上一钩子对下一个钩子的影响是否符合预期', async () => {
-        const plug: IPlugin = {
-            name: 'plug',
-            lifecycle: {
-                preRequestTransform: (config) => {
-                    ;(config.data as any).b = 123
-                    return config
-                },
-                transformRequest: (config) => {
-                    expect(config.data.b).toBe(123)
-                    return config
-                },
-                transformResponse: (response) => {
-                    expect(response.config.data).toMatch(JSON.stringify({ a: 1, b: 123 }))
-                    return {
-                        ...response,
-                        data: { result: 'haha' }
-                    }
-                },
-                postResponseTransform: (response) => {
-                    expect(response.data).toEqual({ result: 'haha' })
-                    return response
-                }
-            }
-        }
-        const request = axios.create({ baseURL: BASE_URL })
-        useAxiosPlugin(request).plugin(plug)
-        const res = await request.get('/success', { data: { a: 1 } })
-        expect(res.data).toEqual({ result: 'haha' })
-    })
-
     test('valid - 验证请求失败情况下, `captureException` 钩子函数是否被正确触发', async () => {
         const plug: IPlugin = {
             name: 'plug',
             lifecycle: {
-                preRequestTransform: jest.fn((arg0: any) => arg0),
-                transformRequest: jest.fn((arg0: any) => arg0),
-                transformResponse: jest.fn((arg0: any) => arg0),
-                postResponseTransform: jest.fn((arg0: any) => arg0),
                 captureException: jest.fn((e) => {
                     throw e
                 }),
@@ -373,12 +314,9 @@ describe('测试 `useAxiosPlugin()`', () => {
         useAxiosPlugin(request).plugin(plug)
         // 捕获请求异常
         await expect(request.get('/failure')).rejects.toThrow(AxiosError)
-        expect(plug.lifecycle?.preRequestTransform).toBeCalledTimes(1)
-        expect(plug.lifecycle?.transformRequest).toBeCalledTimes(1)
         expect(plug.lifecycle?.captureException).toBeCalledTimes(1)
         expect(plug.lifecycle?.completed).toBeCalledTimes(1)
-        // 处理响应过程的钩子, 将不被触发
-        expect(plug.lifecycle?.transformResponse).toBeCalledTimes(0)
+        expect(plug.lifecycle?.preRequestTransform).toBeCalledTimes(0)
         expect(plug.lifecycle?.postResponseTransform).toBeCalledTimes(0)
     })
     test('valid - 验证请求失败情况下, `captureException` 钩子异常处理行为是否符合预期', async () => {
@@ -429,60 +367,6 @@ describe('测试 `useAxiosPlugin()`', () => {
         await expect(request.get('/failure', { params: { n: 1 } })).resolves.toThrow(AxiosError)
         await expect(request.get('/failure', { params: { n: 2 } })).rejects.toThrow(AxiosError)
         await expect(request.get('/failure', { params: { n: 3 } })).resolves.toBeUndefined()
-    })
-
-    test('valid - 验证 `transformRequest` 钩子与 `axios.interceptors.request` 互影响', async () => {
-        const request = axios.create({ baseURL: BASE_URL })
-        let n: number = 0
-        request.interceptors.request.use((config) => {
-            n++
-            expect(n).toBe(3)
-            return config
-        })
-        const plug: IPlugin = {
-            name: 'plug',
-            lifecycle: {
-                transformRequest(config) {
-                    n++
-                    expect(n).toBe(2)
-                    return config
-                }
-            }
-        }
-        useAxiosPlugin(request).plugin(plug)
-        request.interceptors.request.use((config) => {
-            n++
-            expect(n).toBe(1)
-            return config
-        })
-        await request.post('/case', {})
-    })
-
-    test('valid - 验证 `transformResponse` 钩子与 `axios.interceptors.response` 互影响', async () => {
-        const request = axios.create({ baseURL: BASE_URL })
-        let n: number = 0
-        request.interceptors.response.use((config) => {
-            n++
-            expect(n).toBe(1)
-            return config
-        })
-        const plug: IPlugin = {
-            name: 'plug',
-            lifecycle: {
-                transformResponse(config) {
-                    n++
-                    expect(n).toBe(2)
-                    return config
-                }
-            }
-        }
-        useAxiosPlugin(request).plugin(plug)
-        request.interceptors.response.use((config) => {
-            n++
-            expect(n).toBe(3)
-            return config
-        })
-        await request.post('/case', {})
     })
 
     test('other - 冗余检查, 重复触发 `useAxiosPlugin()` 仅触发一次 `injectPluginHooks()`', () => {
@@ -606,7 +490,7 @@ describe('测试 `IPlugin` 钩子组合特性', () => {
         const plug: IPlugin = {
             name: 'plug',
             lifecycle: {
-                transformRequest(config) {
+                preRequestTransform(config) {
                     // 修改请求参数使请求成功
                     config.params = { a: 123 } as any
                     return config
@@ -622,17 +506,13 @@ describe('测试 `IPlugin` 钩子组合特性', () => {
         const plug: IPlugin = {
             name: 'plug',
             lifecycle: {
-                transformResponse(res) {
+                postResponseTransform(res) {
                     return {
                         ...res,
                         data: {
                             replaced: true
                         }
                     }
-                },
-                postResponseTransform(res) {
-                    expect(res.data).toEqual({ replaced: true })
-                    return res
                 }
             }
         }
