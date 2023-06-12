@@ -7,7 +7,7 @@ import {
     Axios,
     AxiosDefaults
 } from 'axios'
-import type { AxiosInstanceExtension, ILifecycleHookObject, IPlugin, ISharedCache } from './intf'
+import type { AxiosInstanceExtension, IHooksShareOptions, ILifecycleHookObject, IPlugin, ISharedCache } from './intf'
 import { klona } from 'klona'
 import { AbortChainController, createAbortChain } from './utils/create-abort-chain'
 
@@ -78,7 +78,7 @@ class AxiosExtension extends Axios {
 
         this.request = async function <T = any, R = AxiosResponse<T>, D = any>(config: AxiosRequestConfig<D>) {
             const origin: AxiosRequestConfig<D> = klona(config)
-            const share = { origin, shared: this.__shared__ }
+            const share: IHooksShareOptions = { origin, shared: this.__shared__, axios: vm as unknown as AxiosInstance }
             return await createAbortChain(config)
                 .next((config, controller) => runHook('preRequestTransform', config, share, controller))
                 .next((config) => <PromiseLike<R>>originRequest.call(vm, config))
