@@ -4,6 +4,10 @@ import { createOrGetCache } from '../../utils/create-cache'
 import { createUrlFilter, FilterPattern } from '../../utils/create-filter'
 import { defaultCalcRequestHash } from '../../utils/calc-hash'
 declare module 'axios' {
+    interface CreateAxiosDefaults {
+        /** 配置重试策略 */
+        retry?: IRetryOptions
+    }
     interface AxiosRequestConfig {
         /**
          * 接口请求失败重试次数

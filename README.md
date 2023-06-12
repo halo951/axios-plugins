@@ -152,6 +152,10 @@ export interface IDebounceOptions {}
 
 1. 开发环境下应添加 `debug` 插件, 检查可能会出现冲突、错误的插件使用场景
 2. 建议添加 `merge` 插件, 但不建议 `merge`, `debounce`, `throttle` 同时使用
+3. `includes`,`excludes`策略
+    - 为了方便理解, 只支持 `全局`, `单次请求` 两种模式
+    - `全局`: 需要配置插件的 `include` 规则
+    - `单次请求`: 需要在发起请求时, 在配置中指定插件的启用规则
 
 ## FAQ
 

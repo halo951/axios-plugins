@@ -12,24 +12,24 @@ export type FilterPattern =
 
 const getMatchers = (fp: FilterPattern): Array<Matcher> => {
     fp = fp instanceof Array ? fp : [fp]
-    let matchers: Array<Matcher> = []
-    for (const rule of fp) {
-        if (typeof rule === 'function') {
-            matchers.push({ test: rule })
-        } else if (rule instanceof RegExp) {
-            matchers.push(rule)
-        } else if (typeof rule === 'string') {
-            matchers.push({
-                // match id in url
-                test(url: string): boolean {
-                    return url.includes(rule)
+    return fp
+        .filter((rule) => ![undefined, null].includes(rule))
+        .map((rule) => {
+            if (rule instanceof RegExp) {
+                return rule
+            } else if (typeof rule === 'function') {
+                return { test: rule }
+            } else if (typeof rule === 'string') {
+                return {
+                    // match id in url
+                    test(url: string): boolean {
+                        return url.includes(rule)
+                    }
                 }
-            })
-        } else if (![undefined, null].includes(rule)) {
-            throw new TypeError('请检查 `includes`, `excludes` 配置')
-        }
-    }
-    return matchers
+            } else {
+                throw new TypeError('请检查 `includes`, `excludes` 配置')
+            }
+        })
 }
 
 /** 创建简易的url过滤器 */
@@ -46,7 +46,6 @@ export const createUrlFilter = (include?: FilterPattern, exclude?: FilterPattern
         for (const matcher of includeMatchers) {
             if (matcher.test(url)) return true
         }
-        // 否则如果没有配置 includes 过滤器, 则通过
-        return !includeMatchers.length
+        return false
     }
 }
