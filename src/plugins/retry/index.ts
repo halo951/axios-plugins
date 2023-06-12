@@ -1,86 +1,106 @@
-import { AxiosRequestConfig } from 'axios'
-
-import { IPlugin, ISharedCache } from '../../intf'
-import { defaultCalcRequestHash } from '../../utils/calc-hash'
+import { AxiosResponse } from 'axios'
+import { IHooksShareOptions, IPlugin, ISharedCache } from '../../intf'
 import { createOrGetCache } from '../../utils/create-cache'
 import { createUrlFilter, FilterPattern } from '../../utils/create-filter'
-import { delay } from '../../utils/delay'
-
-interface ISharedThrottleCache extends ISharedCache {
-    throttle: {
-        [hash: string]: boolean
+import { defaultCalcRequestHash } from '../../utils/calc-hash'
+declare module 'axios' {
+    interface AxiosRequestConfig {
+        /**
+         * 接口请求失败重试次数
+         *
+         * @description
+         *  - 需要注册 `retry()` 插件, 指示接口请求失败后, 重试几次
+         *  - 设置为 0 时, 禁用重试功能
+         */
+        retry?: number
     }
 }
 
-/** 节流请求的放弃规则 */
-export enum GiveUpRule {
-    /** 抛出异常 */
-    throw = 'throw',
-    /** 放弃执行, 并返回空值结果 */
-    cancel = 'cancel',
-    /** 静默, 既不返回成功、也不抛出异常 */
-    silent = 'silent'
-}
-
-/** 插件参数配置 */
-export interface IThrottleOptions {
+/** 插件参数类型 */
+export interface IRetryOptions {
     /**
      * 指定哪些接口包含
-     *
-     * @description 未指定情况下, 所有接口均包含防抖逻辑
      */
     includes?: FilterPattern
 
     /**
-     * 指定哪些接口应忽略
+     * 最大重试次数
+     *
+     * @description 如果请求时, 指定了失败重试次数, 那么根据请求上标识, 确认失败后重试几次
      */
-    excludes?: FilterPattern
+    max: number
 
     /**
-     * 延迟判定时间
-     * @description 当设置此值时, 在请求完成后 n 秒内发起的请求都属于重复请求
-     */
-    delay?: number
-
-    /** 自定义: 计算请求 hash 值
+     * 自定义异常请求检查方法
      *
-     * @description 定制重复请求检查方法, 当请求hash值相同时, 判定两个请求为重复请求.
-     * @default | 默认公式: f(url, data, params) => hash
+     * @description 默认情况下, 仅在捕获到axios抛出异常时, 触发重试规则, 也可以通过此方法自定义重试检查
      */
-    calcRequstHash?: <D>(config: AxiosRequestConfig<D>) => string
-
-    /** 遇到重复请求的抛弃逻辑 */
-    giveUp?: GiveUpRule
-    /**  */
-    throttleErrorMessage?: string | ((config: IPlugin) => void)
+    isExceptionRequest?: (response: AxiosResponse, options: IHooksShareOptions) => boolean
 }
-/** 节流异常 */
-export class ThrottleError extends Error {
-    type: string = 'throttle'
+
+interface IRetrySharedCache extends ISharedCache {
+    retry: {
+        [hash: string]: number
+    }
+}
+/** 重试异常 */
+class RetryError extends Error {
+    type: string = 'retry'
 }
 
 /**
- * 插件: 节流
+ * 插件: 失败重试
  *
- * @description 在一段时间内发起的重复请求, 后执行的请求将被抛弃
+ * @description 当请求失败(出错)后, 重试 n 次, 当全部失败时, 再抛出异常.
+ *
+ * 注:
  */
-export const throttle = (options: IThrottleOptions = {}): IPlugin => {
+export const retry = (options: IRetryOptions): IPlugin => {
     // @ 定义url路径过滤器
-    const filter = createUrlFilter(options.includes, options.excludes)
-    // @ 定义重复请求检查方法
-    const calcRequstHash = options.calcRequstHash ?? defaultCalcRequestHash
+    const filter = createUrlFilter(options.includes ?? [() => false])
+    // @ 计算请求hash
+    const calcRequstHash = defaultCalcRequestHash
     return {
-        name: 'throttle',
-        enforce: 'pre',
+        name: 'retry',
+        enforce: 'post',
         lifecycle: {
-            preRequestTransform(config) {
-                return config
+            postResponseTransform: {
+                runWhen(_, { origin }) {
+                    return !!options.isExceptionRequest && filter(origin.url)
+                },
+                handler(response, opt) {
+                    const isException = options.isExceptionRequest(response, opt)
+                    if (isException) {
+                        throw new RetryError()
+                    }
+                    return response
+                }
             },
-            transformRequest(config, sahred) {
-                return config
-            },
-            postResponseTransform(args_0, args_1) {
-                return args_0
+            captureException: {
+                runWhen(_, { origin }) {
+                    return filter(origin.url)
+                },
+                async handler(reason, { origin, shared, axios }) {
+                    const hash: string = calcRequstHash(origin)
+                    // @ 从共享内存中创建或获取缓存对象
+                    const cache: IRetrySharedCache['retry'] = createOrGetCache(shared, 'retry')
+                    const max: number = origin.retry ?? options.max
+                    // ? 判断请求已达到最大重试次数
+                    if (cache[hash] && cache[hash] >= max) {
+                        // 删除重试记录
+                        delete cache[hash]
+                        throw reason
+                    } else {
+                        // 添加重试失败次数
+                        if (!cache[hash]) {
+                            cache[hash] = 1
+                        } else {
+                            cache[hash]++
+                        }
+                        // > 发起重试
+                        return await axios.request(origin)
+                    }
+                }
             }
         }
     }
