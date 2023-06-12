@@ -3,3 +3,4 @@ node_modules/
 .temp/
 .cache/
 __notes__/
+dist/

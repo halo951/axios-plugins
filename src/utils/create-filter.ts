@@ -1,31 +1,36 @@
-type Filter = (url: string) => boolean
 type Matcher = { test: (url: string) => boolean }
-type T = string | RegExp
 
-const ensureArray = (thing: FilterPattern): readonly T[] => {
-    if (thing instanceof Array) return thing
-    else if (typeof thing === 'string' || thing instanceof RegExp) return [thing]
-    else if (!thing) return []
-    throw new TypeError('请检查插件配置的 `includes`, `excludes` 参数')
-}
+export type Filter = (url: string) => boolean
+
+export type FilterPattern =
+    | ReadonlyArray<string | RegExp | ((url: string) => boolean)>
+    | string
+    | RegExp
+    | ((url: string) => boolean)
+    | null
+    | undefined
 
 const getMatchers = (fp: FilterPattern): Array<Matcher> => {
-    const toMatcher = (id: string | RegExp): Matcher => {
-        if (id instanceof RegExp) {
-            return id
-        } else {
-            return {
+    fp = fp instanceof Array ? fp : [fp]
+    let matchers: Array<Matcher> = []
+    for (const rule of fp) {
+        if (typeof rule === 'function') {
+            matchers.push({ test: rule })
+        } else if (rule instanceof RegExp) {
+            matchers.push(rule)
+        } else if (typeof rule === 'string') {
+            matchers.push({
                 // match id in url
                 test(url: string): boolean {
-                    return url.includes(id)
+                    return url.includes(rule)
                 }
-            }
+            })
+        } else if (![undefined, null].includes(rule)) {
+            throw new TypeError('请检查 `includes`, `excludes` 配置')
         }
     }
-    return ensureArray(fp).map(toMatcher)
+    return matchers
 }
-
-export type FilterPattern = ReadonlyArray<string | RegExp> | string | RegExp | null | undefined
 
 /** 创建简易的url过滤器 */
 export const createUrlFilter = (include?: FilterPattern, exclude?: FilterPattern): Filter => {

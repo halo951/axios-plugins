@@ -4,7 +4,7 @@ export interface AbortChainController {
     /** 中断并抛出异常 */
     abortError(reason: any): void
     /** 静默 */
-    slient: () => void
+    slient: () => Promise<void>
 }
 
 interface Chain<T> {
