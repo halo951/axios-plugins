@@ -1,20 +1,6 @@
 import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { AbortChainController } from './utils/create-abort-chain'
 
-declare module 'axios' {
-    interface AxiosRequestConfig {
-        /**
-         * 接口 mock 请求标识符
-         *
-         * @description
-         *  - 需要注册 `mock()` 插件
-         *  - 当 `mock: true` 时, 如果插件启用, 则会使用 `mockUrl` 替代 `baseUrl` 发起请求
-         *  - 当此项配置在axios实例时, 启用全局mock请求
-         */
-        mock?: boolean
-    }
-}
-
 /** 实例内共享缓存 */
 export interface ISharedCache {
     [key: string]: any
@@ -37,6 +23,8 @@ export type IHooksShareOptions = {
     readonly origin: AxiosRequestConfig
     /** 实例共享缓存 */
     readonly shared: ISharedCache
+    /** axios 实例 */
+    readonly axios: AxiosInstance
 }
 
 export enum ENext {
@@ -69,7 +57,7 @@ export interface IPlugin {
      *
      * @description 可以在此检查 axios 实例是否可以支持当前插件的使用, 如果不能够支持, 应抛出异常.
      */
-    beforeRegister?: (axios: AxiosInstanceExtension) => void
+    beforeRegister?: (axios: AxiosInstance) => void
 
     /** 插件声明周期钩子函数
      *
