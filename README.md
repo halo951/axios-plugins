@@ -93,11 +93,6 @@ useAxiosPlugin(axios).plugin(plug({}))
 | onlySend   | 仅发送           | 提供 `navigator.sendBeacon` 方法封装, 实现页面离开时的埋点数据提交, 但这个需要后端支持 |
 | mp         | 小程序请求适配器 | 扩展对小程序(微信、头条、qq 等)、跨平台框架(uni-app, taro)网络请求的支持               |
 
-> RoadMap
->
-> -   offline | 离线请求 | 弱网环境下暂存未成功发送的请求, 并在网络环境通畅 (应用下次初始化时), 重放失败请求
-> -
-
 ## API & 示例
 
 > 暂时, 需要通过 `.d.ts` 文件, 查看参数及说明
