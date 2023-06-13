@@ -1,6 +1,6 @@
 import { RollupOptions } from 'rollup'
 import typescript from 'rollup-plugin-typescript2'
-// import terser from '@rollup/plugin-terser'
+import terser from '@rollup/plugin-terser'
 import fs from 'node:fs'
 const pkg = JSON.parse(fs.readFileSync('package.json', { encoding: 'utf-8' }))
 
@@ -29,6 +29,7 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
                 abortOnError: true,
                 include: ['src/**/*.ts'],
                 tsconfigDefaults: {
+                    importHelpers: true,
                     strict: true,
                     noImplicitAny: true,
                     noImplicitThis: true,
@@ -37,9 +38,9 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
                     strictNullChecks: true,
                     strictPropertyInitialization: true
                 }
-            })
+            }),
             // 压缩
-            // terser()
+            terser()
         ],
         output: [
             // output to cjs
@@ -48,8 +49,7 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
                 inlineDynamicImports: true,
                 banner,
                 format: 'cjs',
-                file: `dist/index.cjs.js`,
-                sourcemap: 'inline'
+                file: `dist/index.cjs.js`
             },
             // output to esm
             {
