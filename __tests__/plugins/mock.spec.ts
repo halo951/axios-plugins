@@ -59,7 +59,7 @@ describe('测试插件: `mock`', () => {
         const plug: IPlugin = {
             name: 'valid',
             lifecycle: {
-                transformRequest(config) {
+                preRequestTransform(config) {
                     if (config.url) {
                         expect(config.baseURL).toBe(BASE_URL)
                     } else {
@@ -82,7 +82,7 @@ describe('测试插件: `mock`', () => {
         const plug: IPlugin = {
             name: 'valid',
             lifecycle: {
-                transformRequest(config) {
+                preRequestTransform(config) {
                     expect(config.url).toBe(MOCK_URL + '/case')
                     return config
                 }
