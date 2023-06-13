@@ -43,23 +43,23 @@ const request2 = useAxiosPlugin(request).wrap()
 
 ## Plugins
 
-| Category | Plugin     | Description                                                                                                                                    |
-| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Process  | debounce   | When duplicate requests are made within a certain time, the later request will wait for the last request to complete before executing          |
-| Process  | throttle   | When duplicate requests are made within a certain time, the later request will be discarded                                                    |
-| Process  | merge      | When duplicate requests are made within a certain time, the requests will only be made once, and each requester will receive the same response |
-| Process  | retry      | When a request fails (errors), retry n times. If all retries fail, an exception will be thrown                                                 |
-| Process  | cancel     | Provides `cancelAll()` method to cancel all ongoing requests                                                                                   |
-| Process  | cache      | Stores the response content of the request and returns it for the next request (within cache expiration time)                                  |
-| Tool     | envs       | Normalizes axios environment configuration tool                                                                                                |
-| Tool     | loading    | Provides a unified control capability for global loading to reduce the workload of independent loading control for each loading method         |
-| Tool     | logger     | Custom request process log printing                                                                                                            |
-| Tool     | mock       | Provides global or single interface request mock capability                                                                                    |
-| Tool     | normalize  | Filters out undefined, null, and other parameters generated during the request process                                                         |
-| Tool     | pathParams | Expands support for Restful API specification of route parameters                                                                              |
-| Tool     | sign       | Provides request anti-tampering capability. This feature requires collaboration with backend logic implementation                              |
-| Adapter  | onlySend   | Provides a wrapper method for `navigator.sendBeacon` to submit embedded data when the page is exited. This requires backend support            |
-| Adapter  | mp         | Expands support for network requests from small programs (WeChat, Toutiao, QQ, etc.) and cross-platform frameworks (uni-app, taro)             |
+| Plugin     | Description                                                                                                                                    |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| debounce   | When duplicate requests are made within a certain time, the later request will wait for the last request to complete before executing          |
+| throttle   | When duplicate requests are made within a certain time, the later request will be discarded                                                    |
+| merge      | When duplicate requests are made within a certain time, the requests will only be made once, and each requester will receive the same response |
+| retry      | When a request fails (errors), retry n times. If all retries fail, an exception will be thrown                                                 |
+| cancel     | Provides `cancelAll()` method to cancel all ongoing requests                                                                                   |
+| cache      | Stores the response content of the request and returns it for the next request (within cache expiration time)                                  |
+| envs       | Normalizes axios environment configuration tool                                                                                                |
+| loading    | Provides a unified control capability for global loading to reduce the workload of independent loading control for each loading method         |
+| logger     | Custom request process log printing                                                                                                            |
+| mock       | Provides global or single interface request mock capability                                                                                    |
+| normalize  | Filters out undefined, null, and other parameters generated during the request process                                                         |
+| pathParams | Expands support for Restful API specification of route parameters                                                                              |
+| sign       | Provides request anti-tampering capability. This feature requires collaboration with backend logic implementation                              |
+| onlySend   | Provides a wrapper method for `navigator.sendBeacon` to submit embedded data when the page is exited. This requires backend support            |
+| mp         | Expands support for network requests from small programs (WeChat, Toutiao, QQ, etc.) and cross-platform frameworks (uni-app, taro)             |
 
 ## Thanks
 
