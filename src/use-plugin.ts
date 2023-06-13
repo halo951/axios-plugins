@@ -8,7 +8,7 @@ import {
     AxiosDefaults
 } from 'axios'
 import type { AxiosInstanceExtension, IHooksShareOptions, ILifecycleHookObject, IPlugin, ISharedCache } from './intf'
-import { klona } from 'klona'
+import { klona } from 'klona/json'
 import { AbortChainController, AbortError, SlientError, createAbortChain } from './utils/create-abort-chain'
 
 /**
