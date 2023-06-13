@@ -24,10 +24,15 @@ interface Chain<T> {
     done(): Promise<T>
 }
 
-class AbortError extends Error {
+export class AbortError extends Error {
     type: string = 'abort'
+    abort!: { success: boolean; res: any }
+    constructor(abort: { success: boolean; res: any }) {
+        super()
+        this.abort = abort
+    }
 }
-class SlientError extends Error {
+export class SlientError extends Error {
     type: string = 'slient'
 }
 
@@ -37,16 +42,16 @@ export const createAbortChain = <T>(initial?: T): Chain<T> => {
     /** 任务链 */
     const chain: Array<(value: T, controller: AbortChainController) => TResult | PromiseLike<TResult>> = []
 
-    /** 链控制器 */
+    /** 链控制器
+     *
+     * @description 借助 throw error 传递数据
+     */
     const controller: AbortChainController = {
-        abort(result: any) {
-            res = result
-            throw new AbortError()
+        abort(res: any) {
+            throw new AbortError({ success: true, res })
         },
         abortError(reason: any) {
-            isAbortError = true
-            res = reason
-            throw new AbortError()
+            throw new AbortError({ success: false, res: reason })
         },
         slient() {
             throw new SlientError()
@@ -55,7 +60,6 @@ export const createAbortChain = <T>(initial?: T): Chain<T> => {
 
     let onCapture!: (reason: any, controller: AbortChainController) => TResult | PromiseLike<TResult>
     let onCompleted!: (controller: AbortChainController) => void | PromiseLike<void>
-    let isAbortError!: boolean
     let res: T = initial as unknown as T
 
     return {
@@ -106,10 +110,10 @@ export const createAbortChain = <T>(initial?: T): Chain<T> => {
             } catch (reason) {
                 // ? 处理 Abort、AbortError
                 if (reason instanceof AbortError) {
-                    if (isAbortError) {
-                        throw res
+                    if (reason.abort.success) {
+                        return reason.abort.res
                     } else {
-                        return res
+                        throw reason.abort.res
                     }
                 } else if (reason instanceof SlientError) {
                     return new Promise(() => {})

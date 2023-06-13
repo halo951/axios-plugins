@@ -68,6 +68,11 @@ export interface IPlugin {
          * 在 `axios.request` 调用前触发钩子
          */
         preRequestTransform?: ILifecycleHook<AxiosRequestConfig>
+
+        /**
+         * `axios.interceptors.request` 钩子, 在拦截器内修改请求
+         */
+        transformRequest?: ILifecycleHook<InternalAxiosRequestConfig>
         /**
          * 响应后触发钩子
          */

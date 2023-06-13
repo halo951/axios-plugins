@@ -9,7 +9,7 @@ import {
 } from 'axios'
 import type { AxiosInstanceExtension, IHooksShareOptions, ILifecycleHookObject, IPlugin, ISharedCache } from './intf'
 import { klona } from 'klona'
-import { AbortChainController, createAbortChain } from './utils/create-abort-chain'
+import { AbortChainController, AbortError, SlientError, createAbortChain } from './utils/create-abort-chain'
 
 /**
  * Axios 实例扩展
@@ -81,6 +81,7 @@ class AxiosExtension extends Axios {
             return arg1
         }
 
+        // 包装 request
         this.request = async function <T = any, R = AxiosResponse<T>, D = any>(config: AxiosRequestConfig<D>) {
             const origin: AxiosRequestConfig<D> = klona(config)
             const share: IHooksShareOptions = { origin, shared: this.__shared__, axios: vm as unknown as AxiosInstance }
@@ -103,6 +104,21 @@ class AxiosExtension extends Axios {
                 )
                 .done()
         }
+
+        // > 添加请求拦截器
+        this.interceptors.request.use((config) => {
+            return runHook('transformRequest', false, config, this.__shared__, {
+                abort(res: any) {
+                    throw new AbortError({ success: true, res })
+                },
+                abortError(reason: any) {
+                    throw new AbortError({ success: false, res: reason })
+                },
+                slient() {
+                    throw new SlientError()
+                }
+            })
+        })
     }
 }
 

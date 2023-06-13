@@ -5,7 +5,7 @@ import { isAbsoluteURL, combineURLs } from '../../utils/url'
 declare module 'axios' {
     interface CreateAxiosDefaults {
         /** 配置mock请求策略 */
-        mock?: Pick<IMockOptions, 'mock' | 'mockUrl'>
+        mock?: boolean | Pick<IMockOptions, 'mock' | 'mockUrl'>
     }
 
     interface AxiosRequestConfig {
@@ -23,6 +23,16 @@ declare module 'axios' {
 /** 插件参数声明: mock */
 export interface IMockOptions {
     /**
+     * 是否启用插件
+     *
+     * @type {'webpack'} 当enable值为 `webpack`时, 根据 `process.env.NODE_ENV === 'development'` 判断是否启用 mock 插件
+     * @type {'vite'} 当enable值为 `vite`时, 根据 `!!import.meta.env.DEV` 判断是否启用 mock 插件
+     *
+     * @default {false}
+     */
+    enable: boolean | 'webpack' | 'vite'
+
+    /**
      * 配置是否将请求映射到mock服务器
      *
      * @description 提供全局或单个接口请求 mock 能力
@@ -36,6 +46,8 @@ export interface IMockOptions {
      */
     mockUrl?: string
 }
+
+/** 判断当前是否处于 webpack 开发环境 */
 const isWebpackDev = (): boolean => {
     try {
         return process.env.NODE_ENV === 'development'
@@ -43,6 +55,18 @@ const isWebpackDev = (): boolean => {
         return false
     }
 }
+
+/** 判断当前是否处于 vite 开发环境 */
+const isViteDev = (): boolean => {
+    try {
+        // @ts-ignore
+        return !!import.meta.env.DEV
+    } catch (error) {
+        // skip
+        return false
+    }
+}
+
 /**
  * 插件: mock 请求
  *
@@ -50,7 +74,7 @@ const isWebpackDev = (): boolean => {
  *
  * 注意: `mock` 修改的请求参数会受到 `axios.interceptors.
  */
-export const mock = (options: IMockOptions & { enable: boolean | 'webpack' }): IPlugin => {
+export const mock = (options: IMockOptions): IPlugin => {
     return {
         name: 'mock',
         beforeRegister(axios) {
@@ -66,17 +90,20 @@ export const mock = (options: IMockOptions & { enable: boolean | 'webpack' }): I
                 runWhen(_, { origin }) {
                     if (options.enable === 'webpack') {
                         options.enable = isWebpackDev()
+                    } else if (options.enable === 'vite') {
+                        options.enable = isViteDev()
+                    }
+                    if (!options.enable) {
+                        return false
                     }
                     // mock 启用条件
                     // 条件1: `enable === true`
                     // 条件2: `config.mock === true` or `options.mock === true`
                     let mock = origin.mock ?? options.mock
-                    if (typeof mock === 'boolean') {
-                        return mock
-                    } else if (typeof mock === 'object') {
-                        return mock.mock
+                    if (typeof mock === 'object') {
+                        return !!mock.mock
                     } else {
-                        return false
+                        return !!mock
                     }
                 },
                 handler: (config) => {
