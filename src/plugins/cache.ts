@@ -17,12 +17,18 @@ declare module 'axios' {
          *  - 需要注册 `merge()` 插件
          *  - 不建议与 `debounce`, `throttle` 插件同时使用
          */
-        cache?: boolean | Pick<ICacheOptions, 'expires' | 'key'>
+        cache?: boolean | (Pick<ICacheOptions, 'expires'> & { key: string })
     }
 }
 
 /** 插件参数类型 */
 export interface ICacheOptions {
+    /**
+     * 缓存版本号
+     *
+     * @description 设置此参数可以避免因数据结构差异, 导致后续逻辑错误
+     */
+    version?: string
     /**
      * 过期时间
      *
@@ -36,12 +42,12 @@ export interface ICacheOptions {
      * @description 缓存key遵循两个规则, 可以参考 `calcRequestHash` 自定义缓存键
      * @default ``` f(url, data, params) => hash ```
      */
-    key?: string | (<D>(config: AxiosRequestConfig<D>) => string)
+    key?: <D>(config: AxiosRequestConfig<D>) => string
 
     /**
      * 响应缓存存储空间
      *
-     * @default
+     * @default {sessionStorage}
      */
     storage?: Storage
 
@@ -99,7 +105,7 @@ export const cache = (options: ICacheOptions = {}): IPlugin => {
     }
 
     // @ 获取 storage
-    const storage: Storage = options.storage ?? localStorage
+    const storage: Storage = options.storage ?? sessionStorage
     // @ 获取 storage 中, 存放缓存的字段名
     const storageKey: string = options.storageKey ?? 'axios-plugins.cache'
 
@@ -115,8 +121,12 @@ export const cache = (options: ICacheOptions = {}): IPlugin => {
         if (!storage.getItem(storageKey)) {
             return {}
         }
-        const cache: ICache = JSON.parse(storage.getItem(storageKey))
-        return cache
+        const { version, cache } = JSON.parse(storage.getItem(storageKey))
+        if (version !== options.version) {
+            return {}
+        } else {
+            return cache
+        }
     }
 
     const patch = (patchCache: ICache): void => {
@@ -128,7 +138,7 @@ export const cache = (options: ICacheOptions = {}): IPlugin => {
             }
         }
         if (Object.keys(cache).length > 0) {
-            storage.setItem(storageKey, JSON.stringify(cache))
+            storage.setItem(storageKey, JSON.stringify({ version: options.version, cache }))
         } else {
             storage.removeItem(storageKey)
         }
@@ -179,7 +189,7 @@ export const cache = (options: ICacheOptions = {}): IPlugin => {
                     // patch to storage
                     patch({
                         [key]: {
-                            expires: (origin.cache as ICacheOptions)?.expires ?? options.expires,
+                            expires: (origin.cache as any)?.expires ?? options.expires,
                             res: response
                         }
                     })
