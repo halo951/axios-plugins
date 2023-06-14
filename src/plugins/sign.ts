@@ -13,24 +13,28 @@ export interface ISignOptions {
      *
      * @default 'sign'
      */
-    key: 'sign' | 'signature' | string
+    key?: 'sign' | 'signature' | string
 
     /**
      * 签名算法
      *
      * @default 'md5'
      */
-    algorithm: 'md5' | 'sha1' | 'sha256' | string
+    algorithm?: 'md5' | 'sha1' | 'sha256' | string
 
     /**
      * 自定义参数排序规则
      *
-     * @type {false} 禁用排序
+     * @default {true}
      */
-    sort?: false | ((key1: string, key2: string) => number)
+    sort?: boolean | ((key1: string, key2: string) => number)
 
-    /** 过滤空值 */
-    filter?: false | ((key: string, value: any) => boolean)
+    /**
+     * 过滤空值
+     *
+     * @default {true}
+     */
+    filter?: boolean | ((key: string, value: any) => boolean)
 
     /** 加盐
      *
@@ -57,7 +61,7 @@ export interface ISignOptions {
  * - 需要手工添加到所有插件的末尾, 避免后续其他修改导致签名不一致.
  * - 这个插件实现为初稿, 如果无法满足需要, 可以给我提 Issue
  */
-export const sign = (options: ISignOptions): IPlugin => {
+export const sign = (options: ISignOptions = {}): IPlugin => {
     /**
      * 计算对象hash值
      *
@@ -83,7 +87,7 @@ export const sign = (options: ISignOptions): IPlugin => {
                 // 排序
                 if (options.sort !== false) {
                     entries = entries.sort(([a], [b]) => {
-                        if (options.sort) return options.sort(a, b)
+                        if (options.sort) return (options.sort as Function)(a, b)
                         else return a.localeCompare(b)
                     })
                 }

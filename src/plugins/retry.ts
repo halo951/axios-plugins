@@ -24,6 +24,8 @@ declare module 'axios' {
 export interface IRetryOptions {
     /**
      * 指定哪些接口包含
+     *
+     * @description 建议使用 `axios.request({ retry: 3 })` 方式对单个请求设置重试规则
      */
     includes?: FilterPattern
     /**
@@ -74,7 +76,7 @@ export const retry = (options: IRetryOptions): IPlugin => {
     }
     return {
         name: 'retry',
-        enforce: 'post',
+        enforce: 'pre',
         beforeRegister(axios) {
             // 参数合并
             Object.assign(options, axios.defaults['retry'])

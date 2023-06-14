@@ -16,9 +16,11 @@ type FilterRule =
 /** 插件参数声明 */
 export interface INormalizeOptions {
     /** 过滤url */
-    url?: {
-        noDuplicateSlash?: boolean
-    }
+    url?:
+        | {
+              noDuplicateSlash?: boolean
+          }
+        | boolean
     /**
      * 过滤 data
      *
@@ -43,12 +45,13 @@ export const normalize = (options: INormalizeOptions = {}): IPlugin => {
         name: 'normalize',
         lifecycle: {
             async transformRequest(config) {
-                let filterDataRule: INormalizeOptions['data'] = {
+                const def: INormalizeOptions['data'] = {
                     noNull: false,
                     noUndefined: true,
                     noNaN: false,
                     deep: false
                 }
+                let filterDataRule: INormalizeOptions['data'] = def
                 const normal = (data: any): void => {
                     if (!filterDataRule) return data
                     if (typeof data === 'object') {
@@ -70,7 +73,7 @@ export const normalize = (options: INormalizeOptions = {}): IPlugin => {
                     }
                 }
 
-                if (config.url && options.url?.noDuplicateSlash) {
+                if (config.url && (options.url === true || (options.url as any)?.noDuplicateSlash)) {
                     let reg: RegExp = /^([a-z][a-z\d\+\-\.]*:)?\/\//i
                     let matched: Array<string> | null = config.url.match(reg)
                     let schema: string = matched ? matched[0] : ''
@@ -78,12 +81,12 @@ export const normalize = (options: INormalizeOptions = {}): IPlugin => {
                 }
 
                 if (options.data !== false) {
-                    if (options.data) filterDataRule = options.data
+                    filterDataRule = typeof options.data === 'object' ? options.data : def
                     normal(config.data)
                 }
 
                 if (options.params !== false) {
-                    if (options.params) filterDataRule = options.params
+                    filterDataRule = typeof options.params === 'object' ? options.params : def
                     normal(config.params)
                 }
                 return config

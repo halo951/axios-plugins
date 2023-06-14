@@ -34,7 +34,7 @@ export class ThrottleError extends Error {
 export enum GiveUpRule {
     /** 抛出异常 */
     throw = 'throw',
-    /** 放弃执行, 并返回空值结果 */
+    /** 中断请求, 并返回空值结果 */
     cancel = 'cancel',
     /** 静默, 既不返回成功、也不抛出异常 */
     silent = 'silent'
