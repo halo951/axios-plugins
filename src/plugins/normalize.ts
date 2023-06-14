@@ -38,7 +38,7 @@ export interface INormalizeOptions {
  *
  * @description 过滤请求过程中产生的 undefined, null 等参数
  */
-export const normalize = (options: INormalizeOptions): IPlugin => {
+export const normalize = (options: INormalizeOptions = {}): IPlugin => {
     return {
         name: 'normalize',
         lifecycle: {

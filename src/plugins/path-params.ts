@@ -17,7 +17,7 @@ export interface IPathParamsOptions {
  *
  * - url 格式需满足: `/api/${query}` 特征
  */
-export const pathParams = (options: IPathParamsOptions): IPlugin => {
+export const pathParams = (options: IPathParamsOptions = {}): IPlugin => {
     return {
         name: 'pathParams',
         lifecycle: {

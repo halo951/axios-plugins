@@ -17,7 +17,7 @@ export class OnlySendError extends Error {
  *
  * @description 提供 `navigator.sendBeacon` 方法封装, 实现页面离开时的埋点数据提交, 但这个需要后端支持
  */
-export const onlySend = (options: IOnlySendOptions): IPlugin => {
+export const onlySend = (options: IOnlySendOptions = {}): IPlugin => {
     return {
         name: 'onlySend',
         enforce: 'post',

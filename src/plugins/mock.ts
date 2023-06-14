@@ -74,7 +74,7 @@ const isViteDev = (): boolean => {
  *
  * 注意: `mock` 修改的请求参数会受到 `axios.interceptors.
  */
-export const mock = (options: IMockOptions): IPlugin => {
+export const mock = (options: IMockOptions = { enable: false }): IPlugin => {
     return {
         name: 'mock',
         beforeRegister(axios) {

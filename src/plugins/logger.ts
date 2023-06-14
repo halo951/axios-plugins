@@ -19,7 +19,7 @@ export interface ILoggerOptions {
  *
  * @description 自定义请求过程日志打印 (通过 `axios-logger` 插件实现)
  */
-export const logger = (options: ILoggerOptions): IPlugin => {
+export const logger = (options: ILoggerOptions = {}): IPlugin => {
     if (options.config) log.setGlobalConfig(options.config)
     return {
         name: 'logger',

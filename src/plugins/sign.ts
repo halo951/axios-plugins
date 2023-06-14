@@ -13,14 +13,14 @@ export interface ISignOptions {
      *
      * @default 'sign'
      */
-    key?: 'sign' | 'signature' | string
+    key: 'sign' | 'signature' | string
 
     /**
      * 签名算法
      *
      * @default 'md5'
      */
-    algorithm?: 'md5' | 'sha1' | 'sha256' | string
+    algorithm: 'md5' | 'sha1' | 'sha256' | string
 
     /**
      * 自定义参数排序规则
