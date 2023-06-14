@@ -1,6 +1,6 @@
 {
     "name": "axios-plugins",
-    "version": "0.0.1-dev.7",
+    "version": "0.0.1-dev.8",
     "description": "[开发中]用最小的侵入性, 为 axios 扩展更多的插件能力 (防抖、节流 等等)",
     "keywords": [
         "axios",
@@ -25,26 +25,31 @@
     "publishConfig": {
         "access": "public"
     },
-    "files": [
-        "dist/",
-        "src/",
-        ".gitignore"
-    ],
-    "main": "./dist/es/index.js",
-    "types": "./dist/typings/index.d.ts",
     "exports": {
         ".": {
             "types": "./dist/typings/index.d.ts",
-            "import": "./dist/es/index.js",
-            "require": "./dist/cjs/index.js"
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js",
+            "unpkg": "./dist/index.js"
         },
         "./core": {
             "types": "./dist/typings/core.d.ts",
-            "import": "./dist/es/core.js",
-            "require": "./dist/cjs/core.js"
+            "import": "./dist/core.mjs",
+            "require": "./dist/core.js",
+            "unpkg": "./dist/core.js"
+        },
+        "./plugins/*": {
+            "types": "./dist/typings/plugins/*.d.ts",
+            "import": "./dist/es/plugins/*.js",
+            "require": "./dist/cjs/plugins/*.js",
+            "unpkg": "./dist/cjs/plugins/*.js"
         },
         "./package.json": "./package.json"
     },
+    "files": [
+        "src/",
+        "dist/"
+    ],
     "scripts": {
         "clean": "rimraf dist && rimraf typings",
         "build": "rollup --config ./rollup.config.ts --configPlugin typescript2",
