@@ -57,7 +57,7 @@ export interface IPlugin {
      *
      * @description 可以在此检查 axios 实例是否可以支持当前插件的使用, 如果不能够支持, 应抛出异常.
      */
-    beforeRegister?: (axios: AxiosInstance) => void
+    beforeRegister?: (axios: AxiosInstanceExtension) => void
 
     /** 插件声明周期钩子函数
      *
