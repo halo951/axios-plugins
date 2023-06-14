@@ -1,4 +1,4 @@
-import { IPlugin } from '../../intf'
+import { IPlugin } from '../intf'
 
 type FilterRule =
     | {

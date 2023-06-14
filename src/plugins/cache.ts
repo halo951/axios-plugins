@@ -1,6 +1,6 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios'
 
-import { IHooksShareOptions, IPlugin } from '../../intf'
+import { IHooksShareOptions, IPlugin } from '../intf'
 
 declare module 'axios' {
     interface CreateAxiosDefaults {

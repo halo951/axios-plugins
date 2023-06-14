@@ -1,6 +1,6 @@
 import { AxiosPromise, InternalAxiosRequestConfig } from 'axios'
-import { IPlugin } from '../../intf'
-import { combineURLs, isAbsoluteURL } from '../../utils/url'
+import { IPlugin } from '../intf'
+import { combineURLs, isAbsoluteURL } from '../utils/url'
 /** 插件参数类型 */
 export interface ILoadingOptions<C = { [key: string]: any }> {
     env:

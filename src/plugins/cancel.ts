@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, CancelToken, CancelTokenSource, CanceledError } from 'axios'
-import { AxiosInstanceExtension, IPlugin, ISharedCache } from '../../intf'
-import { createOrGetCache } from '../../utils/create-cache'
+import { AxiosInstanceExtension, IPlugin, ISharedCache } from '../intf'
+import { createOrGetCache } from '../utils/create-cache'
 
 interface SharedCache extends ISharedCache {
     cancel: Array<CancelTokenSource | null>

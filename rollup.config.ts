@@ -1,28 +1,14 @@
-import { InputPluginOption, InternalModuleFormat, RollupOptions, Plugin } from 'rollup'
+import { sync as globSync } from 'glob'
+import np from 'node:path'
+import { InputPluginOption, RollupOptions } from 'rollup'
 import typescript from 'rollup-plugin-typescript2'
 import terser from '@rollup/plugin-terser'
-import fs from 'node:fs'
-import np from 'node:path'
-import * as glob from 'glob'
-
-const pkg = JSON.parse(fs.readFileSync('package.json', { encoding: 'utf-8' }))
-
-const banner: string = `
-/** 
- * ${pkg.name}@${pkg.version}
- * 
- * Copyright (c) ${new Date().getFullYear()} ${pkg.author.name} <${pkg.author.url}>
- * Released under ${pkg.license} License
- * 
- * @author ${pkg.author.name}(${pkg.author.url})
- * @license ${pkg.license}
- */
-`.trim()
+import { banner } from './scripts/rollup-banner-plugin'
+import size from '@atomico/rollup-plugin-sizes'
 
 /** export rollup.config */
 export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
     const external = ['axios', 'crypto', 'axios-logger', 'qs', 'klona/json', 'tslib']
-    const formats: Array<InternalModuleFormat> = ['cjs', 'es']
     const plugins: InputPluginOption = [
         // 编译
         typescript({
@@ -42,32 +28,59 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
             }
         }),
         // 压缩
-        terser()
+        terser(),
+        // 计算打包后体积
+        size()
     ]
 
-    const task: Array<RollupOptions> = []
-
-    // build full code
-    task.push({
-        input: {
-            index: 'src/index.ts',
-            core: 'src/core.ts'
+    return [
+        // 1. build full
+        {
+            input: 'src/index.ts',
+            plugins,
+            external,
+            output: [
+                { format: 'cjs', exports: 'auto', file: `dist/index.js`, plugins: [banner()] },
+                { format: 'es', exports: 'auto', file: `dist/index.mjs`, plugins: [banner()] }
+            ]
         },
-        plugins,
-        external,
-        output: formats.map((format) => ({
-            banner,
-            format,
-            exports: 'auto',
-            dir: `dist/${format}`,
-            minifyInternalExports: false,
-            manualChunks: (id) => {
-                if (/src\\plugins/.test(id)) {
-                    // const pluginName = 
+        // 2. build core
+        {
+            input: 'src/core.ts',
+            plugins,
+            external,
+            output: [
+                { format: 'cjs', exports: 'auto', file: `dist/core.js`, plugins: [banner()] },
+                { format: 'es', exports: 'auto', file: `dist/core.mjs`, plugins: [banner()] }
+            ]
+        },
+        // 3. build plugins
+        {
+            input: globSync('src/plugins/*.ts').reduce((entry, path) => {
+                const plug: string = np.basename(path, '.ts')
+                entry[plug] = path
+                return entry
+            }, {}),
+            plugins,
+            external,
+            output: [
+                {
+                    format: 'cjs',
+                    exports: 'auto',
+                    dir: 'dist/plugins/',
+                    manualChunks: (id) => (id.match(/utils/) ? 'utils' : null),
+                    entryFileNames: ({ name }) => name + '.js',
+                    chunkFileNames: ({ name }) => name + '.js'
+                },
+                {
+                    format: 'es',
+                    exports: 'auto',
+                    dir: 'dist/plugins/',
+                    manualChunks: (id) => (id.match(/utils/) ? 'utils' : null),
+                    entryFileNames: ({ name }) => name + '.mjs',
+                    chunkFileNames: ({ name }) => name + '.mjs'
                 }
-            }
-        }))
-    })
-
-    return task
+            ]
+        }
+    ]
 }

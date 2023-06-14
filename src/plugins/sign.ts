@@ -1,5 +1,5 @@
 import { createHash } from 'crypto'
-import { IPlugin } from '../../intf'
+import { IPlugin } from '../intf'
 import { klona } from 'klona/json'
 import { stringify } from 'qs'
 

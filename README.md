@@ -1,6 +1,18 @@
+[![npm version](https://badge.fury.io/js/%40ysfe%2Frequest.svg)](https://badge.fury.io/js/%40ysfe%2Frequest)
+[![NPM downloads](https://img.shields.io/npm/dm/%40ysfe%2Frequest.svg?style=flat)](https://npmjs.org/package/ysfe/request)
+[![coverage status](https://coveralls.io/repos/github//halo951/axios-plugins/badge.svg?branch=master)](https://coveralls.io/github//halo951/axios-plugins?branch=master)
+[![minzipped size](https://badgen.net/bundlephobia/minzip/axios-plugins)](https://bundlephobia.com/package/axios-plugins)
+![license](https://img.shields.io/badge/license-MIT-blue.svg)
+
 <p align="center"><a href="./README.md">中文</a> | <a href="./README.en-US.md">English</a></p>
 
 > 用最小的侵入性, 为 axios 扩展更多的插件能力 (防抖、节流 等等)
+
+## 特征
+
+-   [轻量级] 核心依赖仅 2kb, 插件可按需引用
+-   [链式API] api 
+-   [低侵入性] 插件能力通过包装方式扩展, 不影响 axios 现有配置 (包括 `interceptors`).
 
 ## 使用
 
@@ -39,12 +51,28 @@ useAxiosPlugin(axios)
 request.post('/api', {}, { mock: true }) // 指定接口请求时, 向mock服务器发起请求
 
 // 5. 如果需要支持 `request()` 方式调用, 需要通过 `wrap()` 方法覆盖原实例
-const request2 = useAxiosPlugin(request).wrap()
-// 也可以这么写
-const request3 = useAxiosPlugin(request)
+const request2 = useAxiosPlugin(request)
     .plugin(mock()) // 添加插件
-    .plugin(loading()) // 添加插件
-    .wrap()
+    .wrap() // wrap 函数包装 axios 实例
+```
+
+-   按需引用
+
+> TIPS: 如果你正在使用 `vite` 或其他带有 TreeShaking 能力的编译器, 直接使用默认导出即可
+
+```typescript
+import axios from 'axios'
+// + 将依赖导入修改成如下方式, 导入 `core` 和 需要使用的插件
+import { useAxiosPlugin } from 'axios-plugins/core'
+import { loading } from 'axios-plugins/plugins/loading'
+
+// 1. 定义axios实例 或 使用项目现有的axios实例
+export const request = axios.create({
+    /* ... */
+})
+
+// 2. 添加插件
+useAxiosPlugin(request).plugin(loading())
 ```
 
 -   创建自定义插件
@@ -96,6 +124,8 @@ useAxiosPlugin(axios).plugin(plug({}))
 ## API & 示例
 
 > 暂时, 需要通过 `.d.ts` 文件, 查看参数及说明
+
+## 按需加载
 
 ## 参考及感谢
 

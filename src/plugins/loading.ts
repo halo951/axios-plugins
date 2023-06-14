@@ -1,6 +1,6 @@
-import { IPlugin, ISharedCache } from '../../intf'
-import { createOrGetCache } from '../../utils/create-cache'
-import { delay } from '../../utils/delay'
+import { IPlugin, ISharedCache } from '../intf'
+import { createOrGetCache } from '../utils/create-cache'
+import { delay } from '../utils/delay'
 
 declare module 'axios' {
     interface AxiosRequestConfig {

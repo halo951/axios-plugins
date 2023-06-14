@@ -1,4 +1,4 @@
-import { IPlugin } from '../../intf'
+import { IPlugin } from '../intf'
 
 /** 插件参数声明 */
 export interface IPathParamsOptions {

@@ -1,5 +1,5 @@
 import type { GlobalLogConfig } from 'axios-logger/lib/common/types'
-import { IPlugin } from '../../intf'
+import { IPlugin } from '../intf'
 import * as log from 'axios-logger'
 
 /** 插件参数类型 */

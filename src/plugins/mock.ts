@@ -1,6 +1,6 @@
-import { IPlugin } from '../../intf'
+import { IPlugin } from '../intf'
 
-import { isAbsoluteURL, combineURLs } from '../../utils/url'
+import { isAbsoluteURL, combineURLs } from '../utils/url'
 
 declare module 'axios' {
     interface CreateAxiosDefaults {

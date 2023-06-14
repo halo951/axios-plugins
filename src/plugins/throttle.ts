@@ -1,10 +1,10 @@
 import { AxiosRequestConfig } from 'axios'
 
-import { IHooksShareOptions, IPlugin, ISharedCache } from '../../intf'
-import { defaultCalcRequestHash as crh } from '../../utils/calc-hash'
-import { createOrGetCache } from '../../utils/create-cache'
-import { createUrlFilter, Filter, FilterPattern } from '../../utils/create-filter'
-import { delay } from '../../utils/delay'
+import { IHooksShareOptions, IPlugin, ISharedCache } from '../intf'
+import { defaultCalcRequestHash as crh } from '../utils/calc-hash'
+import { createOrGetCache } from '../utils/create-cache'
+import { createUrlFilter, Filter, FilterPattern } from '../utils/create-filter'
+import { delay } from '../utils/delay'
 
 declare module 'axios' {
     interface CreateAxiosDefaults {

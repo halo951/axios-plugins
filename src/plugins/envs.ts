@@ -1,5 +1,5 @@
 import { AxiosDefaults, AxiosHeaderValue, HeadersDefaults } from 'axios'
-import { IPlugin } from '../../intf'
+import { IPlugin } from '../intf'
 
 /** 插件参数声明 */
 export type IEnvsOptions = Array<{

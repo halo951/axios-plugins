@@ -1,8 +1,8 @@
 import { AxiosResponse } from 'axios'
-import { IHooksShareOptions, IPlugin, ISharedCache } from '../../intf'
-import { createOrGetCache } from '../../utils/create-cache'
-import { createUrlFilter, Filter, FilterPattern } from '../../utils/create-filter'
-import { defaultCalcRequestHash as crh } from '../../utils/calc-hash'
+import { IHooksShareOptions, IPlugin, ISharedCache } from '../intf'
+import { createOrGetCache } from '../utils/create-cache'
+import { createUrlFilter, Filter, FilterPattern } from '../utils/create-filter'
+import { defaultCalcRequestHash as crh } from '../utils/calc-hash'
 declare module 'axios' {
     interface CreateAxiosDefaults {
         /** 配置重试策略 */
