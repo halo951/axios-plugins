@@ -2,6 +2,7 @@
     "compilerOptions": {
         "strict": false,
         "target": "ES6",
+        "module": "esnext",
         "types": [
             "node",
             "jest"
