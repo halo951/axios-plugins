@@ -68,6 +68,7 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
                     format: 'cjs',
                     exports: 'auto',
                     dir: 'dist/plugins/',
+                    plugins: [banner('// @ts-nocheck')],
                     manualChunks: (id) => (id.match(/utils/) ? 'utils' : null),
                     entryFileNames: ({ name }) => name + '.js',
                     chunkFileNames: ({ name }) => name + '.js'
@@ -76,6 +77,7 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
                     format: 'es',
                     exports: 'auto',
                     dir: 'dist/plugins/',
+                    plugins: [banner('// @ts-nocheck')],
                     manualChunks: (id) => (id.match(/utils/) ? 'utils' : null),
                     entryFileNames: ({ name }) => name + '.mjs',
                     chunkFileNames: ({ name }) => name + '.mjs'

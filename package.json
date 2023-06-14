@@ -23,6 +23,9 @@
         "src",
         "dist"
     ],
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "typings": "./dist/typings/index.d.ts",
     "exports": {
         ".": {
             "types": "./dist/typings/index.d.ts",
