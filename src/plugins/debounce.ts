@@ -64,8 +64,8 @@ interface SharedCache extends ISharedCache {
 export const debounce = (options: IDebounceOptions = {}): IPlugin => {
     /** 触发检查 */
     const runWhen = <V>(_: V, { origin }: IHooksShareOptions): boolean => {
-        if (typeof origin['debounce'] === 'boolean') {
-            return origin['debounce']
+        if (origin['debounce']) {
+            return !!origin['debounce']
         } else {
             const filter: Filter = createUrlFilter(options.includes, options.excludes)
             return filter(origin.url)

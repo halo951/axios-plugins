@@ -94,8 +94,8 @@ interface ISharedThrottleCache extends ISharedCache {
 export const throttle = (options: IThrottleOptions = {}): IPlugin => {
     /** 触发检查 */
     const runWhen = <V>(_: V, { origin }: IHooksShareOptions): boolean => {
-        if (typeof origin['throttle'] === 'boolean') {
-            return origin['throttle']
+        if (origin['throttle']) {
+            return !!origin['throttle']
         } else {
             const filter: Filter = createUrlFilter(options.includes, options.excludes)
             return filter(origin.url)

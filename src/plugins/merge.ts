@@ -69,8 +69,8 @@ interface SharedCache extends ISharedCache {
 export const merge = (options: IMergeOptions = {}): IPlugin => {
     /** 触发检查 */
     const runWhen = <V>(_: V, { origin }: IHooksShareOptions): boolean => {
-        if (typeof origin['merge'] === 'boolean') {
-            return origin['merge']
+        if (origin['merge']) {
+            return !!origin['merge']
         } else {
             const filter: Filter = createUrlFilter(options.includes, options.excludes)
             return filter(origin.url)

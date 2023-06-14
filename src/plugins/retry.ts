@@ -65,8 +65,8 @@ class RetryError extends Error {
 export const retry = (options: IRetryOptions): IPlugin => {
     /** 触发检查 */
     const runWhen = <V>(_: V, { origin }: IHooksShareOptions): boolean => {
-        if (typeof origin['retry'] === 'boolean') {
-            return origin['retry']
+        if (origin['retry']) {
+            return !!origin['retry']
         } else {
             const filter: Filter = createUrlFilter(options.includes, options.excludes)
             return filter(origin.url)
