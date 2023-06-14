@@ -17,19 +17,25 @@ describe('测试 `createUrlFilter()`', () => {
         const includes1: FilterPattern = 'api'
         const includes2: FilterPattern = /api/
         const includes3: FilterPattern = ['api']
+        const includes4: FilterPattern = [(path) => path.includes('api')]
+        const includes5: FilterPattern = [true] // 忽略校验, 直接返回成功.
         // 多条件
-        const includes4: FilterPattern = ['/api', '/xxxxxx']
-        const includes5: FilterPattern = ['/xxxxxx', /api/]
+        const includes6: FilterPattern = ['/api', '/xxxxxx']
+        const includes7: FilterPattern = ['/xxxxxx', /api/]
         const filter1 = createUrlFilter(includes1)
         const filter2 = createUrlFilter(includes2)
         const filter3 = createUrlFilter(includes3)
         const filter4 = createUrlFilter(includes4)
         const filter5 = createUrlFilter(includes5)
+        const filter6 = createUrlFilter(includes6)
+        const filter7 = createUrlFilter(includes7)
         expect(filter1(testUrl)).toBeTruthy()
         expect(filter2(testUrl)).toBeTruthy()
         expect(filter3(testUrl)).toBeTruthy()
         expect(filter4(testUrl)).toBeTruthy()
         expect(filter5(testUrl)).toBeTruthy()
+        expect(filter6(testUrl)).toBeTruthy()
+        expect(filter7(testUrl)).toBeTruthy()
     })
 
     test('case - `excludes` 条件匹配时, 返回 false', () => {
@@ -40,16 +46,19 @@ describe('测试 `createUrlFilter()`', () => {
         // 多条件
         const excludes4: FilterPattern = ['/api', '/xxxxxx']
         const excludes5: FilterPattern = ['/xxxxxx', /api/]
+        const excludes6: FilterPattern = [(path) => path.includes('api')]
         const filter1 = createUrlFilter(undefined, excludes1)
         const filter2 = createUrlFilter(undefined, excludes2)
         const filter3 = createUrlFilter(undefined, excludes3)
         const filter4 = createUrlFilter(undefined, excludes4)
         const filter5 = createUrlFilter(undefined, excludes5)
+        const filter6 = createUrlFilter(undefined, excludes6)
         expect(filter1(testUrl)).toBeFalsy()
         expect(filter2(testUrl)).toBeFalsy()
         expect(filter3(testUrl)).toBeFalsy()
         expect(filter4(testUrl)).toBeFalsy()
         expect(filter5(testUrl)).toBeFalsy()
+        expect(filter6(testUrl)).toBeFalsy()
     })
 
     test('case - 当 `includes` 匹配, `excludes` 不匹配时, 返回 true', () => {

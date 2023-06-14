@@ -1,4 +1,4 @@
-import { sync as globSync } from 'glob'
+import glob from 'glob'
 import np from 'node:path'
 import { InputPluginOption, RollupOptions } from 'rollup'
 import typescript from 'rollup-plugin-typescript2'
@@ -56,7 +56,7 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
         },
         // 3. build plugins
         {
-            input: globSync('src/plugins/*.ts').reduce((entry, path) => {
+            input: glob.sync('src/plugins/*.ts').reduce((entry, path) => {
                 const plug: string = np.basename(path, '.ts')
                 entry[plug] = path
                 return entry

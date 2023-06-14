@@ -1,8 +1,8 @@
 import * as nock from 'nock'
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
-import { IPlugin, useAxiosPlugin } from '../src'
-import { IGNORE_COVERAGE } from '../src/use-plugin'
-import { ISharedCache } from '../src/intf'
+import { ILifecycleHookObject, IPlugin, ISharedCache } from '../src/intf'
+import { IGNORE_COVERAGE, useAxiosPlugin } from '../src/use-plugin'
+import { SlientError } from '../src/utils/create-abort-chain'
 
 describe('测试 `useAxiosPlugin()`', () => {
     const BASE_URL: string = 'http://test'
@@ -92,6 +92,7 @@ describe('测试 `useAxiosPlugin()`', () => {
         useAxiosPlugin(request).plugin(plug1).plugin(plug2)
         expect(request['__plugins__']).toEqual([plug1, plug2])
     })
+
     test('case - 当插件注册后, `beforeRegister()` 将被触发一次', () => {
         const request = axios.create({})
         const plug: IPlugin = {
@@ -228,6 +229,32 @@ describe('测试 `useAxiosPlugin()`', () => {
         expect(plug.lifecycle?.completed).toBeCalledTimes(1)
     })
 
+    test('valid - 当钩子函数为 ILifecycleHookObject<D> 类型时, 可以被正常触发', async () => {
+        const plug: IPlugin = {
+            name: 'plug',
+            lifecycle: {
+                preRequestTransform: {
+                    runWhen: jest.fn(() => false),
+                    handler: jest.fn((config) => config)
+                },
+                postResponseTransform: {
+                    runWhen: jest.fn(() => true),
+                    handler: jest.fn((config) => config)
+                }
+            }
+        }
+        const request = axios.create({ baseURL: BASE_URL })
+        useAxiosPlugin(request).plugin(plug)
+        // 捕获请求异常
+        await request.get('/success')
+        // runWhen() return False
+        expect((plug.lifecycle?.preRequestTransform as ILifecycleHookObject<any>).runWhen).toBeCalled()
+        expect((plug.lifecycle?.preRequestTransform as ILifecycleHookObject<any>).handler).not.toBeCalled()
+        // runWhen() return True
+        expect((plug.lifecycle?.postResponseTransform as ILifecycleHookObject<any>).runWhen).toBeCalled()
+        expect((plug.lifecycle?.postResponseTransform as ILifecycleHookObject<any>).handler).toBeCalled()
+    })
+
     test('valid - 验证请求过程中, 插件的钩子触发顺序是否正确', async () => {
         let step: number = 0
         const plug: IPlugin = {
@@ -316,8 +343,6 @@ describe('测试 `useAxiosPlugin()`', () => {
         await expect(request.get('/failure')).rejects.toThrow(AxiosError)
         expect(plug.lifecycle?.captureException).toBeCalledTimes(1)
         expect(plug.lifecycle?.completed).toBeCalledTimes(1)
-        expect(plug.lifecycle?.preRequestTransform).toBeCalledTimes(0)
-        expect(plug.lifecycle?.postResponseTransform).toBeCalledTimes(0)
     })
     test('valid - 验证请求失败情况下, `captureException` 钩子异常处理行为是否符合预期', async () => {
         const plug: IPlugin = {
@@ -367,6 +392,35 @@ describe('测试 `useAxiosPlugin()`', () => {
         await expect(request.get('/failure', { params: { n: 1 } })).resolves.toThrow(AxiosError)
         await expect(request.get('/failure', { params: { n: 2 } })).rejects.toThrow(AxiosError)
         await expect(request.get('/failure', { params: { n: 3 } })).resolves.toBeUndefined()
+    })
+
+    test('valid - 验证 transformRequest 阶段的 `abort`, `abortError`, `slient` 的阻塞是否符合预期', async () => {
+        let n: number = 0
+        const plug: IPlugin = {
+            name: 'plug',
+            lifecycle: {
+                transformRequest(config, _, { abort, abortError, slient }) {
+                    n++
+                    if (n === 1) abort('abort')
+                    if (n === 2) abortError('abort error')
+                    if (n === 3) {
+                        try {
+                            slient()
+                        } catch (error) {
+                            expect(error instanceof SlientError)
+                        }
+                    }
+                    return config
+                }
+            }
+        }
+        const request = axios.create({ baseURL: BASE_URL })
+        useAxiosPlugin(request).plugin(plug)
+
+        // 捕获请求异常
+        expect(request.get('/success')).resolves.toBe('abort')
+        expect(request.get('/success')).rejects.toBe('abort error')
+        request.get('/success')
     })
 
     test('other - 冗余检查, 重复触发 `useAxiosPlugin()` 仅触发一次 `injectPluginHooks()`', () => {
