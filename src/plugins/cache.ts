@@ -75,7 +75,7 @@ export const removeCache = (axios: AxiosInstance, cacheKey: string): boolean => 
 }
 
 /** 清除全部缓存 */
-export const clearCache = (axios: AxiosInstance): boolean => {
+export const clearAllCache = (axios: AxiosInstance): boolean => {
     for (const m of mapping) {
         if (m.axios === axios) {
             m.clear()
