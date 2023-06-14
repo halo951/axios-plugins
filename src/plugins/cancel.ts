@@ -15,17 +15,20 @@ export const cancel = (): IPlugin => {
     return {
         name: 'cancel',
         lifecycle: {
-            preRequestTransform(config, { origin, shared }) {
-                const source: CancelTokenSource = axios.CancelToken.source()
-                // > 复制给 config 用于请求过程执行
-                config.cancelToken = source.token
-                // > 复制给 origin, 用于在请求完成后作为清理内存标识
-                origin.cancelToken = source.token
-                // @ 从共享内存中创建或获取缓存对象
-                const cache: SharedCache['cancel'] = createOrGetCache(shared, 'cancel', [])
-                // > 将终止请求的方法放到缓存中
-                cache.push(source)
-                if (shared) return config
+            preRequestTransform: {
+                runWhen: (config) => !config.cancelToken,
+                handler: (config, { origin, shared }) => {
+                    // @ 从共享内存中创建或获取缓存对象
+                    const cache: SharedCache['cancel'] = createOrGetCache(shared, 'cancel', [])
+                    const source: CancelTokenSource = axios.CancelToken.source()
+                    // > 复制给 config 用于请求过程执行
+                    config.cancelToken = source.token
+                    // > 复制给 origin, 用于在请求完成后作为清理内存标识
+                    origin.cancelToken = source.token
+                    // > 将终止请求的方法放到缓存中
+                    cache.push(source)
+                    if (shared) return config
+                }
             },
             captureException: {
                 runWhen: (reason: any) => reason instanceof CanceledError,
