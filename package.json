@@ -23,9 +23,9 @@
         "src",
         "dist"
     ],
-    "main": "./dist/index.js",
-    "module": "./dist/index.mjs",
-    "typings": "./dist/typings/index.d.ts",
+    "main": "dist/index.js",
+    "module": "dist/index.mjs",
+    "typings": "dist/typings/index.d.ts",
     "exports": {
         ".": {
             "types": "./dist/typings/index.d.ts",
@@ -68,7 +68,6 @@
     "devDependencies": {
         "@atomico/rollup-plugin-sizes": "^1.1.4",
         "@rollup/plugin-json": "^6.0.0",
-        "@rollup/plugin-node-resolve": "^15.1.0",
         "@rollup/plugin-terser": "^0.4.3",
         "@types/glob": "^8.1.0",
         "@types/jest": "^29.5.1",
