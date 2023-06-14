@@ -1,18 +1,15 @@
-[![npm version](https://badge.fury.io/js/%40ysfe%2Frequest.svg)](https://badge.fury.io/js/%40ysfe%2Frequest)
-[![NPM downloads](https://img.shields.io/npm/dm/%40ysfe%2Frequest.svg?style=flat)](https://npmjs.org/package/ysfe/request)
-[![coverage status](https://coveralls.io/repos/github//halo951/axios-plugins/badge.svg?branch=master)](https://coveralls.io/github//halo951/axios-plugins?branch=master)
-[![minzipped size](https://badgen.net/bundlephobia/minzip/axios-plugins)](https://bundlephobia.com/package/axios-plugins)
-![license](https://img.shields.io/badge/license-MIT-blue.svg)
+[![npm version](https://badge.fury.io/js/axios-plugins.svg)](https://badge.fury.io/js/axios-plugins)
+[![NPM downloads](https://img.shields.io/npm/dm/axios-plugins.svg?style=flat)](https://npmjs.org/package/axios-plugins)
+![license](https://badgen.net/static/license/MIT/blue)
 
 <p align="center"><a href="./README.md">中文</a> | <a href="./README.en-US.md">English</a></p>
 
 > 用最小的侵入性, 为 axios 扩展更多的插件能力 (防抖、节流 等等)
 
-## 特征
+## 特性
 
--   [轻量级] 核心依赖仅 2kb, 插件可按需引用
--   [链式API] api 
--   [低侵入性] 插件能力通过包装方式扩展, 不影响 axios 现有配置 (包括 `interceptors`).
+-   [轻量级] 完整包体积(5.63kb/gziped), 核心包体积(1.37kb/gziped)
+-   [低侵入性] 扩展插件能力通过包装方式扩展, 不影响 axios 现有配置 (包括 `interceptors`)
 
 ## 使用
 
