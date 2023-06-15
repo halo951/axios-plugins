@@ -4,7 +4,7 @@ import { InputPluginOption, RollupOptions } from 'rollup'
 import typescript from 'rollup-plugin-typescript2'
 import terser from '@rollup/plugin-terser'
 import { banner } from './scripts/rollup-banner-plugin'
-import size from '@atomico/rollup-plugin-sizes'
+import { totalSize } from 'rollup-plugin-total-size'
 
 /** export rollup.config */
 export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
@@ -30,7 +30,7 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
         // 压缩
         terser(),
         // 计算打包后体积
-        size()
+        totalSize()
     ]
 
     return [
