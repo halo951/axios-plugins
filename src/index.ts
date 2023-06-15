@@ -29,6 +29,8 @@ export { normalize } from './plugins/normalize'
 export { pathParams } from './plugins/path-params'
 /** 工具: 请求签名 */
 export { sign } from './plugins/sign'
+/** 工具: sentry 请求错误日志上报 */
+export { sentryCapture } from './plugins/sentry-capture'
 
 /** 适配器: 仅发送 */
 export { onlySend } from './plugins/only-send'
