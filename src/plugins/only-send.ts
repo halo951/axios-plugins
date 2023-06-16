@@ -3,8 +3,12 @@ import { IPlugin } from '../intf'
 import { combineURLs, isAbsoluteURL } from '../utils/url'
 /** 插件参数类型 */
 export interface IOnlySendOptions {
-    /** 如果浏览器不支持 `navigator.sendBeacon` api, 那么应该如何操作 */
-    noSupport?: 'warn' | 'error'
+    /** 如果浏览器不支持 `navigator.sendBeacon` api, 那么应该如何操作
+     *
+     * @type {'lower'} (default) 降级, 使用 XHRRequest继续请求
+     * @type {'error'} 抛出异常信息, 中断请求
+     */
+    noSupport?: 'lower' | 'error'
 }
 
 /** 仅发送插件相关异常 */
@@ -29,29 +33,30 @@ export const onlySend = (options: IOnlySendOptions = {}): IPlugin => {
 
                 if (!navigator.sendBeacon) {
                     let message: string = '当前浏览器不支持 `navigator.sendBeacon`'
-                    if (options.noSupport === 'warn') {
-                        console.error(message)
-                    } else {
+                    if (options.noSupport === 'error') {
                         throw new OnlySendError(message)
+                    } else {
+                        console.error(message)
+                    }
+                } else {
+                    config.adapter = async (config: InternalAxiosRequestConfig): AxiosPromise => {
+                        // > 补全路径
+                        if (!isAbsoluteURL(config.url)) {
+                            config.url = combineURLs(config.baseURL, config.url)
+                        }
+                        const form = new FormData()
+                        toFormData(Object.assign({}, config.data, config.params), new FormData())
+                        let success = navigator.sendBeacon(config.url, form)
+                        return {
+                            config,
+                            data: null,
+                            headers: {},
+                            status: success ? 200 : 500,
+                            statusText: 'success'
+                        }
                     }
                 }
 
-                config.adapter = async (config: InternalAxiosRequestConfig): AxiosPromise => {
-                    // > 补全路径
-                    if (!isAbsoluteURL(config.url)) {
-                        config.url = combineURLs(config.baseURL, config.url)
-                    }
-                    const form = new FormData()
-                    toFormData(Object.assign({}, config.data, config.params), new FormData())
-                    let success = navigator.sendBeacon(config.url, form)
-                    return {
-                        config,
-                        data: null,
-                        headers: {},
-                        status: success ? 200 : 500,
-                        statusText: 'success'
-                    }
-                }
                 return config
             }
         }
