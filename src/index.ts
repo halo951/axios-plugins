@@ -14,6 +14,8 @@ export { retry } from './plugins/retry'
 export { cancel, cancelAll } from './plugins/cancel'
 /** 请求过程: 响应缓存 */
 export { cache } from './plugins/cache'
+/** 请求过程: 参数前置处理和响应后置处理 */
+export { transform } from './plugins/transform'
 
 /** 工具: 全局 loading 控制 */
 export { loading } from './plugins/loading'
@@ -51,3 +53,4 @@ export * as PathParams from './plugins/path-params'
 export * as Retry from './plugins/retry'
 export * as Sign from './plugins/sign'
 export * as Throttle from './plugins/throttle'
+export * as Transform from './plugins/transform'
