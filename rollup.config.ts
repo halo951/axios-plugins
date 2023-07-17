@@ -2,7 +2,6 @@ import glob from 'glob'
 import np from 'node:path'
 import { InputPluginOption, RollupOptions } from 'rollup'
 import typescript from 'rollup-plugin-typescript2'
-import terser from '@rollup/plugin-terser'
 import { banner } from './scripts/rollup-banner-plugin'
 import { totalSize } from 'rollup-plugin-total-size'
 
@@ -27,8 +26,6 @@ export default async (): Promise<RollupOptions | Array<RollupOptions>> => {
                 strictPropertyInitialization: true
             }
         }),
-        // 压缩
-        terser(),
         // 计算打包后体积
         totalSize()
     ]

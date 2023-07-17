@@ -47,26 +47,6 @@ export interface IMockOptions {
     mockUrl?: string
 }
 
-/** 判断当前是否处于 webpack 开发环境 */
-const isWebpackDev = (): boolean => {
-    try {
-        return process.env.NODE_ENV === 'development'
-    } catch (error) {
-        return false
-    }
-}
-
-/** 判断当前是否处于 vite 开发环境 */
-const isViteDev = (): boolean => {
-    try {
-        // @ts-ignore
-        return !!import.meta.env.DEV
-    } catch (error) {
-        // skip
-        return false
-    }
-}
-
 /**
  * 插件: mock 请求
  *
@@ -88,11 +68,6 @@ export const mock = (options: IMockOptions = { enable: false }): IPlugin => {
         lifecycle: {
             preRequestTransform: {
                 runWhen(_, { origin }) {
-                    if (options.enable === 'webpack') {
-                        options.enable = isWebpackDev()
-                    } else if (options.enable === 'vite') {
-                        options.enable = isViteDev()
-                    }
                     if (!options.enable) {
                         return false
                     }
