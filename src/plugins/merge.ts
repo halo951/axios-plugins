@@ -57,7 +57,7 @@ export interface IMergeOptions {
 
 interface SharedCache extends ISharedCache {
     merge: {
-        [hash: string]: Array<{ resolve: Function; reject: Function }>
+        [hash: string]: Array<(result: { status: boolean; response?: any; reason?: any }) => void>
     }
 }
 
@@ -112,16 +112,20 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
                 /**
                  * 请求前, 创建请求缓存, 遇到重复请求时, 将重复请求放入缓存等待最先触发的请求执行完成
                  */
-                handler: async (config, { origin, shared }) => {
+                handler: async (config, { origin, shared }, { abort, abortError }) => {
                     // @ 计算请求hash
                     const hash: string = options.calcRequstHash(origin)
                     // @ 从共享内存中创建或获取缓存对象
                     const cache: SharedCache['merge'] = createOrGetCache(shared, 'merge')
                     // ? 当判断请求为重复请求时, 添加到缓存中, 等待最先发起的请求完成
                     if (cache[hash]) {
-                        return new Promise((resolve, reject) => {
-                            cache[hash].push({ resolve, reject })
-                        })
+                        const { status, response, reason } = await new Promise(
+                            (resolve: SharedCache['merge'][''][0]) => {
+                                cache[hash].push(resolve)
+                            }
+                        )
+                        if (status) abort(response)
+                        else abortError(reason)
                     } else {
                         // 创建重复请求缓存
                         cache[hash] = []
@@ -135,7 +139,7 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
                  * 请求结束后, 向缓存中的请求分发结果 (分发成果结果)
                  */
                 handler: async (response, opt) => {
-                    distributionMergeResponse(opt, ({ resolve }) => resolve(response))
+                    distributionMergeResponse(opt, (resolve) => resolve({ status: true, response }))
                     return response
                 }
             },
@@ -145,7 +149,7 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
                  * 请求结束后, 向缓存中的请求分发结果 (分发失败结果)
                  */
                 handler: async (reason, opt) => {
-                    distributionMergeResponse(opt, ({ reject }) => reject(reason))
+                    distributionMergeResponse(opt, (resolve) => resolve({ status: false, reason }))
                     throw reason
                 }
             }

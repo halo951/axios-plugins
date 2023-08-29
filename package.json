@@ -67,6 +67,7 @@
     },
     "devDependencies": {
         "@rollup/plugin-terser": "^0.4.3",
+        "@types/crypto-js": "^4.1.1",
         "@types/glob": "7",
         "@types/jest": "^29.5.1",
         "@types/node": "^18.15.11",
@@ -87,6 +88,7 @@
     },
     "dependencies": {
         "axios-logger": "^2.6.2",
+        "crypto-js": "^4.1.1",
         "klona": "^2.0.6",
         "qs": "^6.11.2"
     }

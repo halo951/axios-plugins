@@ -1,4 +1,5 @@
 import { AxiosRequestConfig } from 'axios'
+import { MD5 } from 'crypto-js'
 /**
  * 计算对象hash值
  *
@@ -6,21 +7,7 @@ import { AxiosRequestConfig } from 'axios'
  */
 export const calcHash = (obj: Object): string => {
     const data = JSON.stringify(obj)
-    let hash = 0
-    let i: number
-
-    for (i = 0; i < data.length; i++) {
-        const char = data.charCodeAt(i)
-        hash = (hash << 5) - hash + char
-        hash = hash & hash
-    }
-
-    let result: string = ''
-    for (i = 0; i < 4; i++) {
-        const byte = (hash >> (i * 8)) & 0xff
-        result += String.fromCharCode(byte)
-    }
-    return result
+    return MD5(data).toString()
 }
 
 export type TCalcRequestHsah = (config: AxiosRequestConfig) => string

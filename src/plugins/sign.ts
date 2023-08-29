@@ -1,7 +1,7 @@
-import { createHash } from 'crypto'
 import { IPlugin } from '../intf'
 import { klona } from 'klona/json'
 import { stringify } from 'qs'
+import { MD5 } from 'crypto-js'
 
 export interface IData {
     [key: string]: any
@@ -20,7 +20,7 @@ export interface ISignOptions {
      *
      * @default 'md5'
      */
-    algorithm?: 'md5' | 'sha1' | 'sha256' | string
+    algorithm?: 'md5' | ((str: string) => string)
 
     /**
      * 自定义参数排序规则
@@ -62,17 +62,6 @@ export interface ISignOptions {
  * - 这个插件实现为初稿, 如果无法满足需要, 可以给我提 Issue
  */
 export const sign = (options: ISignOptions = {}): IPlugin => {
-    /**
-     * 计算对象hash值
-     *
-     * @description 借助浏览器内置的 `crypto` 库实现, 如果存在兼容性问题, 那么这里可能需要添加 polyfill
-     */
-    const calcHash = (algorithm: string, str: string): string => {
-        const hash = createHash(algorithm)
-        hash.update(str)
-        return hash.digest('hex')
-    }
-
     return {
         name: 'sign',
         enforce: 'post',
@@ -118,7 +107,10 @@ export const sign = (options: ISignOptions = {}): IPlugin => {
                 }
 
                 // 计算签名
-                const sign: string = calcHash(options.algorithm, serializedStr)
+                const sign: string =
+                    typeof options.algorithm === 'function'
+                        ? options.algorithm(serializedStr)
+                        : MD5(serializedStr).toString()
 
                 // 添加到 data
                 config.data[options.key ?? 'sign'] = sign

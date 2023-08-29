@@ -13,8 +13,6 @@ describe('`calcHash()`、`defaultCalcRequestHash()` 组合测试', () => {
                 'Content-Type': 'appliaction/json'
             }
         }
-        console.log(calcHash("qwjdiqwjdiqwefjawoeifjoawejfowjefoiwajefoiwajefowaijefoiwejfowaiejfowaiejfwaoefjowaiejfoiwjfeiowaejfoiwaejfowaijfeoijwjdiqwd"))
-        console.log(calcHash("qwjdiqwjdiqwefjawoeifjoawejfowjefoiwajefoiwajefowaijefoiwejfowaiejfowaiejfwaoefjowaiejfoiwjfeiowaejfoiwaejfowaijfeoijwjdiqwd"))
         expect(defaultCalcRequestHash(config)).not.toBe(calcHash(config))
     })
 })
