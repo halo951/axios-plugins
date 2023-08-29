@@ -27,6 +27,7 @@ const getMatchers = (fp: FilterPattern): Array<Matcher> => {
 
 /** 创建简易的url过滤器 */
 export const createUrlFilter = (include?: FilterPattern, exclude?: FilterPattern): Filter => {
+    if (include === undefined && exclude === undefined) include = true
     const includeMatchers = getMatchers(include)
     const excludeMatchers = getMatchers(exclude)
 
