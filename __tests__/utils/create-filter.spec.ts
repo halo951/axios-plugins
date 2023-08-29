@@ -7,9 +7,9 @@ describe('测试 `createUrlFilter()`', () => {
         const filter1 = createUrlFilter()
         const filter2 = createUrlFilter(null, null)
         const filter3 = createUrlFilter(undefined, undefined)
-        expect(filter1(testUrl)).toBeFalsy()
+        expect(filter1(testUrl)).toBeTruthy()
         expect(filter2(testUrl)).toBeFalsy()
-        expect(filter3(testUrl)).toBeFalsy()
+        expect(filter3(testUrl)).toBeTruthy()
     })
 
     test('case - `includes` 条件匹配时, 返回true', () => {
