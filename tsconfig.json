@@ -2,9 +2,15 @@
     "compilerOptions": {
         "strict": false,
         "target": "ES6",
-        "module": "esnext",
-        "types": ["node", "jest"],
-        "lib": ["ESNext", "dom"],
+        "module": "NodeNext",
+        "types": [
+            "node",
+            "jest"
+        ],
+        "lib": [
+            "ESNext",
+            "dom"
+        ],
         "outDir": "dist",
         "declaration": true,
         "declarationDir": "dist/typings",
@@ -13,5 +19,7 @@
         "allowSyntheticDefaultImports": true,
         "importHelpers": true
     },
-    "include": ["src/**/*.ts"]
+    "include": [
+        "src/**/*.ts"
+    ]
 }
