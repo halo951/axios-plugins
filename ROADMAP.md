@@ -3,7 +3,7 @@
 ## Todos
 
 1. 改成 `monorepo` 接口, 编写一下完整的 `docs` 和 `playground`. 最好用 `codesandbox.io` 管理下用例, 参考下别的工具的使用
-2. 把`plugins/*`的单元测试写完 
+2. 把`plugins/*`的单元测试写完
 
 ## 新的插件
 

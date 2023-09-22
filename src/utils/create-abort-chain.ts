@@ -61,7 +61,7 @@ export const createAbortChain = <T>(initial?: T): Chain<T> => {
     }
 
     let onCapture!: (reason: any, controller: AbortChainController) => TResult | PromiseLike<TResult>
-    let onCompleted!: (controller: AbortChainController) => void | PromiseLike<void>  
+    let onCompleted!: (controller: AbortChainController) => void | PromiseLike<void>
     let onAbort!: (reason: AbortError) => TResult | PromiseLike<TResult>
     let res: T = initial as unknown as T
 
@@ -111,7 +111,7 @@ export const createAbortChain = <T>(initial?: T): Chain<T> => {
                     }
                     return res
                 } catch (reason) {
-                    if(reason instanceof AbortError) {
+                    if (reason instanceof AbortError) {
                         abortRes = reason
                     }
                     if (onCapture && !(reason instanceof AbortError || reason instanceof SlientError)) {
