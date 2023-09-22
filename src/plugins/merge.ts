@@ -152,6 +152,16 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
                     distributionMergeResponse(opt, (resolve) => resolve({ status: false, reason }))
                     throw reason
                 }
+            },
+            aborted: {
+                runWhen,
+                /**
+                 * 如果请求被中断, 那么清理merge缓存
+                 */
+                handler: (reason, opt) => {
+                    distributionMergeResponse(opt, () => {})
+                    throw reason
+                }
             }
         }
     }

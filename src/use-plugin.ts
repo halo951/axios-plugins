@@ -102,6 +102,7 @@ class AxiosExtension extends Axios {
                 .completed(
                     (controller) => runHook('completed', true, share, undefined, controller) as unknown as Promise<void>
                 )
+                .abort((reason) => runHook('aborted', true, reason, share, undefined as any))
                 .done()
         }
 

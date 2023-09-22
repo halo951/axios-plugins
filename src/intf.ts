@@ -1,5 +1,5 @@
 import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
-import { AbortChainController } from './utils/create-abort-chain'
+import { AbortChainController, AbortError } from './utils/create-abort-chain'
 
 /** 实例内共享缓存 */
 export interface ISharedCache {
@@ -83,6 +83,10 @@ export interface IPlugin {
          * @description 这是一个特殊钩子, 将阻塞异常反馈, 并在钩子函数完成后, 返回正常结果. 如果需要抛出异常, 那么应通过 `throw Error` 方式, 抛出异常信息.
          */
         captureException?: ILifecycleHook<Error | AxiosError | any>
+        /**
+         * 请求中断钩子
+         */
+        aborted?: ILifecycleHook<AbortError>
         /**
          * 请求完成后置钩子
          */
