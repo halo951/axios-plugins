@@ -64,6 +64,29 @@ export const loading = (options: ILoadingOptions): IPlugin => {
         }
     }
 
+    const onLoadingChange = (count: 1 | -1, shared: ISharedCache) => {
+        if (count === 1) {
+            // @ 从共享内存中创建或获取缓存对象
+            const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading', {
+                pending: 0,
+                status: false
+            })
+            cache.pending++
+            // ? 如果存在 pending request, 那么触发 loading 状态切换
+            if (cache.pending) {
+                delay(options.delay ?? 200).then(() => trigger(cache, true))
+            }
+        } else {
+            // @ 从共享内存中创建或获取缓存对象
+            const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading', { pending: 0, status: false })
+            cache.pending--
+            // ? 如果存在 pending request, 那么触发 loading 状态切换
+            if (cache.pending--) {
+                delay(options.delayClose ?? 200).then(() => trigger(cache, false))
+            }
+        }
+    }
+
     return {
         name: 'loading',
         enforce: 'pre',
@@ -71,26 +94,24 @@ export const loading = (options: ILoadingOptions): IPlugin => {
             preRequestTransform: {
                 runWhen: (_, { origin }) => origin.loading !== false,
                 handler: (config, { shared }) => {
-                    // @ 从共享内存中创建或获取缓存对象
-                    const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading', {
-                        pending: 0,
-                        status: false
-                    })
-                    cache.pending++
-                    // ? 如果存在 pending request, 那么触发 loading 状态切换
-                    if (cache.pending) {
-                        delay(options.delay ?? 200).then(() => trigger(cache, true))
-                    }
+                    onLoadingChange(1, shared)
                     return config
                 }
             },
-            completed({ shared }) {
-                // @ 从共享内存中创建或获取缓存对象
-                const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading', { pending: 0, status: false })
-                cache.pending--
-                // ? 如果存在 pending request, 那么触发 loading 状态切换
-                if (cache.pending--) {
-                    delay(options.delayClose ?? 200).then(() => trigger(cache, false))
+            completed: {
+                runWhen: ({ origin }) => origin.loading !== false,
+                handler: ({ shared }) => {
+                    onLoadingChange(-1, shared)
+                }
+            },
+            aborted: {
+                runWhen: (_, { origin }) => origin.loading !== false,
+                /**
+                 * 如果请求被中断, 那么清理merge缓存
+                 */
+                handler: (reason, { shared }) => {
+                    onLoadingChange(-1, shared)
+                    throw reason
                 }
             }
         }
