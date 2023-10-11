@@ -23,42 +23,25 @@
         "src",
         "dist"
     ],
-    "main": "dist/index.js",
+    "main": "dist/index.cjs",
     "module": "dist/index.mjs",
-    "typings": "dist/typings/index.d.ts",
+    "typings": "dist/index.d.ts",
     "exports": {
         ".": {
-            "types": "./dist/typings/index.d.ts",
-            "require": "./dist/index.js",
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.cjs",
             "import": "./dist/index.mjs"
-        },
-        "./core": {
-            "types": "./dist/typings/core.d.ts",
-            "require": "./dist/core.js",
-            "import": "./dist/core.mjs"
-        },
-        "./plugins/*": {
-            "types": "./dist/typings/plugins/*.d.ts",
-            "require": "./dist/plugins/*.js",
-            "import": "./dist/plugins/*.mjs"
         }
     },
     "typesVersions": {
-        "*": {
-            "core": [
-                "dist/typings/core.d.ts"
-            ],
-            "plugins/*": [
-                "dist/typings/plugins/*.d.ts"
-            ]
-        }
+        "*": {}
     },
     "engines": {
         "node": ">=16"
     },
     "scripts": {
         "clean": "rimraf dist && rimraf typings",
-        "build": "rollup --config ./rollup.config.ts --configPlugin typescript2",
+        "build": "unbuild",
         "lint:fix": "prettier -w **.ts **.md **.json",
         "test": "jest"
     },
@@ -66,7 +49,6 @@
         "axios": "*"
     },
     "devDependencies": {
-        "@rollup/plugin-terser": "^0.4.3",
         "@types/crypto-js": "^4.1.1",
         "@types/glob": "7",
         "@types/jest": "^29.5.1",
@@ -78,13 +60,11 @@
         "nock": "^13.3.1",
         "prettier": "^2.8.8",
         "rimraf": "^3.0.2",
-        "rollup": "^3.25.1",
-        "rollup-plugin-total-size": "^1.1.2",
-        "rollup-plugin-typescript2": "^0.34.1",
         "ts-jest": "^29.1.0",
         "ts-node": "^10.9.1",
         "tslib": "^2.5.3",
-        "typescript": "^5.0.4"
+        "typescript": "^5.0.4",
+        "unbuild": "^2.0.0"
     },
     "dependencies": {
         "axios-logger": "^2.6.2",

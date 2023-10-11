@@ -1,23 +1,36 @@
 {
     "compilerOptions": {
-        "strict": false,
-        "target": "ES6",
-        "module": "NodeNext",
+        /** libs */
+        "importHelpers": true,
         "types": [
             "node",
             "jest"
         ],
         "lib": [
-            "ESNext",
-            "dom"
+            "DOM",
+            "ESNext"
         ],
-        "outDir": "dist",
-        "declaration": true,
-        "declarationDir": "dist/typings",
-        "moduleResolution": "nodenext",
+        /** module parse */
+        "target": "esnext",
+        "module": "ESNext",
+        "esModuleInterop": true,
+        "moduleResolution": "Node",
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
-        "importHelpers": true
+        "experimentalDecorators": true,
+        /** output config */
+        "noEmit": false,
+        "outDir": "dist",
+        "declaration": true,
+        "declarationDir": "dist/typings/",
+        /** lints */
+        "strict": false,
+        "strictNullChecks": false,
+        "strictPropertyInitialization": false,
+        "noImplicitAny": false,
+        "noImplicitThis": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false
     },
     "include": [
         "src/**/*.ts"
