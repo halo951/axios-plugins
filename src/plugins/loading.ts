@@ -81,7 +81,7 @@ export const loading = (options: ILoadingOptions): IPlugin => {
             const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading', { pending: 0, status: false })
             cache.pending--
             // ? 如果存在 pending request, 那么触发 loading 状态切换
-            if (cache.pending--) {
+            if (cache.pending <= 0) {
                 delay(options.delayClose ?? 200).then(() => trigger(cache, false))
             }
         }
