@@ -1,6 +1,6 @@
 import { IPlugin, ISharedCache } from '../intf'
 import { createOrGetCache } from '../utils/create-cache'
-import { delay } from '../utils/delay'
+import { Filter, FilterPattern, createUrlFilter } from '../utils/create-filter'
 
 declare module 'axios' {
     interface AxiosRequestConfig {
@@ -15,6 +15,18 @@ declare module 'axios' {
 
 /** 插件参数类型 */
 export interface ILoadingOptions {
+    /**
+     * 指定哪些接口包含
+     *
+     * @description 未指定情况下, 所有接口均包含重复请求合并逻辑
+     */
+    includes?: FilterPattern
+
+    /**
+     * 指定哪些接口应忽略
+     */
+    excludes?: FilterPattern
+
     /**
      * 请求发起后, 延时多少毫秒显示loading
      *
@@ -44,6 +56,8 @@ interface SharedCache extends ISharedCache {
         pending: number
         /** loading 状态 */
         status: boolean
+        /** 定时器 */
+        timer?: any
     }
 }
 
@@ -55,65 +69,68 @@ interface SharedCache extends ISharedCache {
  * - 如果插件链或`axios.interceptors`中存在耗时逻辑, 那么应将 loading 插件添加在插件链的最前面
  */
 export const loading = (options: ILoadingOptions): IPlugin => {
-    /** 触发loading状态切换 */
-    const trigger = (cache: SharedCache['loading'], status: boolean): void => {
-        if (status && cache.pending) {
-            options.onTrigger(status)
-        } else if (!status && cache.pending === 0) {
-            options.onTrigger(false)
+    const { delay, delayClose, onTrigger } = options
+    let timer: any
+    /** 触发检查 */
+    const runWhen = <V>(_: V, { origin }: any): boolean => {
+        if (origin['loading']) {
+            return !!origin['loading']
+        } else {
+            const filter: Filter = createUrlFilter(options.includes, options.excludes)
+            return filter(origin.url)
         }
     }
-
-    const onLoadingChange = (count: 1 | -1, shared: ISharedCache) => {
-        if (count === 1) {
-            // @ 从共享内存中创建或获取缓存对象
-            const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading', {
-                pending: 0,
-                status: false
-            })
-            cache.pending++
-            // ? 如果存在 pending request, 那么触发 loading 状态切换
-            if (cache.pending) {
-                delay(options.delay ?? 200).then(() => trigger(cache, true))
-            }
-        } else {
-            // @ 从共享内存中创建或获取缓存对象
-            const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading', { pending: 0, status: false })
-            cache.pending--
-            // ? 如果存在 pending request, 那么触发 loading 状态切换
-            if (cache.pending <= 0) {
-                delay(options.delayClose ?? 200).then(() => trigger(cache, false))
-            }
+    /** 打开loading */
+    const open = <T>(req: T, { shared }): T => {
+        // @ 从共享内存中创建或获取缓存对象
+        const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
+        cache.pending++
+        if (!cache.status && cache.pending > 0) {
+            if (timer) clearTimeout(timer)
+            timer = setTimeout(() => {
+                cache.status = true
+                onTrigger(true)
+            }, delay ?? 0)
         }
+        return req
+    }
+    /** 关闭loading */
+    const close = <T>(res: T, { shared }): T => {
+        // @ 从共享内存中创建或获取缓存对象
+        const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
+        cache.pending--
+        if (cache.status && cache.pending <= 0) {
+            if (timer) clearTimeout(timer)
+            timer = setTimeout(() => {
+                cache.status = false
+                onTrigger(false)
+            }, delayClose ?? 0)
+        }
+        return res
+    }
+    /** 在捕获异常时关闭 */
+    const closeOnError = (reason: unknown, { shared }) => {
+        // @ 从共享内存中创建或获取缓存对象
+        const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
+        cache.pending--
+        if (cache.status && cache.pending <= 0) {
+            if (timer) clearTimeout(timer)
+            timer = setTimeout(() => {
+                cache.status = false
+                onTrigger(false)
+            }, delayClose ?? 0)
+        }
+        throw reason
     }
 
     return {
         name: 'loading',
         enforce: 'pre',
         lifecycle: {
-            preRequestTransform: {
-                runWhen: (_, { origin }) => origin.loading !== false,
-                handler: (config, { shared }) => {
-                    onLoadingChange(1, shared)
-                    return config
-                }
-            },
-            completed: {
-                runWhen: ({ origin }) => origin.loading !== false,
-                handler: ({ shared }) => {
-                    onLoadingChange(-1, shared)
-                }
-            },
-            aborted: {
-                runWhen: (_, { origin }) => origin.loading !== false,
-                /**
-                 * 如果请求被中断, 那么清理merge缓存
-                 */
-                handler: (reason, { shared }) => {
-                    onLoadingChange(-1, shared)
-                    throw reason
-                }
-            }
+            preRequestTransform: { runWhen, handler: open },
+            postResponseTransform: { runWhen, handler: close },
+            captureException: { runWhen, handler: closeOnError },
+            aborted: { runWhen, handler: closeOnError }
         }
     }
 }
