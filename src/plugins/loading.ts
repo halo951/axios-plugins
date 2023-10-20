@@ -84,7 +84,7 @@ export const loading = (options: ILoadingOptions): IPlugin => {
     const open = <T>(req: T, { shared }): T => {
         // @ 从共享内存中创建或获取缓存对象
         const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
-        cache.pending++
+        cache.pending ? cache.pending++ : (cache.pending = 1)
         if (!cache.status && cache.pending > 0) {
             if (timer) clearTimeout(timer)
             timer = setTimeout(() => {
@@ -122,7 +122,6 @@ export const loading = (options: ILoadingOptions): IPlugin => {
         }
         throw reason
     }
-
     return {
         name: 'loading',
         enforce: 'pre',
