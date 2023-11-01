@@ -70,7 +70,8 @@ interface SharedCache extends ISharedCache {
  */
 export const loading = (options: ILoadingOptions): IPlugin => {
     const { delay, delayClose, onTrigger } = options
-    let timer: any
+    let delayTimer: any
+    let delayCloseTimer: any
     /** 触发检查 */
     const runWhen = <V>(_: V, { origin }: any): boolean => {
         if (origin['loading']) {
@@ -86,12 +87,13 @@ export const loading = (options: ILoadingOptions): IPlugin => {
         const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
         cache.pending ? cache.pending++ : (cache.pending = 1)
         if (!cache.status && cache.pending > 0) {
-            if (timer) clearTimeout(timer)
-            timer = setTimeout(() => {
+            if (delayTimer) clearTimeout(delayTimer)
+            delayTimer = setTimeout(() => {
                 cache.status = true
                 onTrigger(true)
             }, delay ?? 0)
         }
+        if (delayCloseTimer) clearTimeout(delayCloseTimer)
         return req
     }
     /** 关闭loading */
@@ -100,11 +102,11 @@ export const loading = (options: ILoadingOptions): IPlugin => {
         const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
         cache.pending--
         if (cache.status && cache.pending <= 0) {
-            if (timer) clearTimeout(timer)
-            timer = setTimeout(() => {
+            if (delayCloseTimer) clearTimeout(delayCloseTimer)
+            delayCloseTimer = setTimeout(() => {
                 cache.status = false
                 onTrigger(false)
-            }, delayClose ?? 0)
+            }, 200)
         }
         return res
     }
@@ -114,8 +116,8 @@ export const loading = (options: ILoadingOptions): IPlugin => {
         const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
         cache.pending--
         if (cache.status && cache.pending <= 0) {
-            if (timer) clearTimeout(timer)
-            timer = setTimeout(() => {
+            if (delayCloseTimer) clearTimeout(delayCloseTimer)
+            delayCloseTimer = setTimeout(() => {
                 cache.status = false
                 onTrigger(false)
             }, delayClose ?? 0)
