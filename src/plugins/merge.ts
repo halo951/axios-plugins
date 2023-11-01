@@ -71,9 +71,11 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
     const runWhen = <V>(_: V, { origin }: IHooksShareOptions): boolean => {
         if (origin['merge']) {
             return !!origin['merge']
-        } else {
+        } else if (origin.url) {
             const filter: Filter = createUrlFilter(options.includes, options.excludes)
             return filter(origin.url)
+        } else {
+            return false
         }
     }
 
@@ -83,7 +85,7 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
         cb: (opt: SharedCache['merge'][any][0]) => void
     ) => {
         // @ 计算请求hash
-        const hash: string = options.calcRequstHash(origin)
+        const hash: string = options.calcRequstHash!(origin)
         // @ 从共享内存中创建或获取缓存对象
         const cache: SharedCache['merge'] = createOrGetCache(shared, 'merge')
         // @ 获取延时时间
@@ -91,9 +93,9 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
         // > 将结果分发给缓存中的请求
         if (cache[hash]) {
             // > 分2次分发 (分别是响应结束、延时结束, 避免请求过度阻塞
-            for (const callback of cache[hash]) cb(callback)
+            for (const callback of cache[hash] ?? []) cb(callback)
             delay(delayTime).then(() => {
-                for (const callback of cache[hash]) cb(callback)
+                for (const callback of cache[hash] ?? []) cb(callback)
                 delete cache[hash]
             })
         }
@@ -114,7 +116,7 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
                  */
                 handler: async (config, { origin, shared }, { abort, abortError }) => {
                     // @ 计算请求hash
-                    const hash: string = options.calcRequstHash(origin)
+                    const hash: string = options.calcRequstHash!(origin)
                     // @ 从共享内存中创建或获取缓存对象
                     const cache: SharedCache['merge'] = createOrGetCache(shared, 'merge')
                     // ? 当判断请求为重复请求时, 添加到缓存中, 等待最先发起的请求完成
@@ -126,6 +128,7 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
                         )
                         if (status) abort(response)
                         else abortError(reason)
+                        return response
                     } else {
                         // 创建重复请求缓存
                         cache[hash] = []
