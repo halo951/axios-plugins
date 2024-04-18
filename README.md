@@ -108,25 +108,25 @@ useAxiosPlugin(axios).plugin(plug({}))
 
 ## 插件
 
-| plugin                          | 名称             | 描述                                                                                   |
-| ------------------------------- | ---------------- | -------------------------------------------------------------------------------------- |
-| [debounce](#debounce)           | 防抖             | 在一段时间内发起的重复请求, 后执行的请求将等待上次请求完成后再执行                     |
-| [throttle](#throttle)           | 节流             | 在一段时间内发起的重复请求, 后执行的请求将被抛弃                                       |
-| [merge](#merge)                 | 重复请求合并     | 在一段时间内发起的重复请求, 仅请求一次, 并将请求结果分别返回给不同的发起者             |
-| [retry](#retry)                 | 失败重试         | 当请求失败(出错)后, 重试 n 次, 当全部失败时, 再抛出异常                                |
-| [cancel](#cancel)               | 取消(中止)请求   | 提供 `cancelAll()` 方法, 中止当前在进行的所有请求                                      |
-| [transform](#transform)         | 转换请求/响应    | 替代`axios.interceptors`的使用, 用于统一管理 axios 请求过程                            |
-| [cache](#cache)                 | 响应缓存         | 存储请求响应内容, 在下次请求时返回 (需要在缓存时效内)                                  |
-| [envs](#envs)                   | 多环境配置       | 规范化 axios 多环境配置工具                                                            |
-| [mock](#mock)                   | 模拟(调试用)     | 提供全局或单个接口请求 mock 能力                                                       |
-| [normalize](#normalize)         | 参数规范化       | 过滤请求过程中产生的 undefined, null 等参数                                            |
-| [pathParams](#pathParams)       | 路由参数处理     | 扩展对 Restful API 规范的路由参数支持                                                  |
-| [sign](#sign)                   | 参数签名         | 提供请求防篡改能力, 这个功能需要搭配后端逻辑实现                                       |
-| [loading](#loading)             | 全局 loading     | 提供全局 loading 统一控制能力, 减少每个加载方法都需要独立 loading 控制的工作量         |
-| [logger](#logger)               | 日志             | 自定义请求过程日志打印                                                                 |
-| [sentryCapture](#sentryCapture) | sentry 错误上报  | 提供 sentry 捕获请求异常并上报的简单实现.                                              |
-| [onlySend](#onlySend)           | 仅发送           | 提供 `navigator.sendBeacon` 方法封装, 实现页面离开时的埋点数据提交, 但这个需要后端支持 |
-| [mp](#mp)                       | 小程序请求适配器 | 扩展对小程序(微信、头条、qq 等)、跨平台框架(uni-app, taro)网络请求的支持               |
+| plugin                          | 名称             | 建议使用 | 描述                                                                                   |
+| ------------------------------- | ---------------- | -------- | -------------------------------------------------------------------------------------- |
+| [debounce](#debounce)           | 防抖             |          | 在一段时间内发起的重复请求, 后执行的请求将等待上次请求完成后再执行                     |
+| [throttle](#throttle)           | 节流             |          | 在一段时间内发起的重复请求, 后执行的请求将被抛弃                                       |
+| [merge](#merge)                 | 重复请求合并     | ★★★      | 在一段时间内发起的重复请求, 仅请求一次, 并将请求结果分别返回给不同的发起者             |
+| [retry](#retry)                 | 失败重试         |          | 当请求失败(出错)后, 重试 n 次, 当全部失败时, 再抛出异常                                |
+| [cancel](#cancel)               | 取消(中止)请求   |          | 提供 `cancelAll()` 方法, 中止当前在进行的所有请求                                      |
+| [transform](#transform)         | 转换请求/响应    | ★★       | 替代`axios.interceptors`的使用, 用于统一管理 axios 请求过程                            |
+| [cache](#cache)                 | 响应缓存         |          | 存储请求响应内容, 在下次请求时返回 (需要在缓存时效内)                                  |
+| [envs](#envs)                   | 多环境配置       |          | 规范化 axios 多环境配置工具                                                            |
+| [mock](#mock)                   | 模拟(调试用)     | ★★★      | 提供全局或单个接口请求 mock 能力                                                       |
+| [normalize](#normalize)         | 参数规范化       | ★        | 过滤请求过程中产生的 undefined, null 等参数                                            |
+| [pathParams](#pathParams)       | 路由参数处理     | ★        | 扩展对 Restful API 规范的路由参数支持                                                  |
+| [sign](#sign)                   | 参数签名         |          | 提供请求防篡改能力, 这个功能需要搭配后端逻辑实现                                       |
+| [loading](#loading)             | 全局 loading     | ★        | 提供全局 loading 统一控制能力, 减少每个加载方法都需要独立 loading 控制的工作量         |
+| [logger](#logger)               | 日志             |          | 自定义请求过程日志打印                                                                 |
+| [sentryCapture](#sentryCapture) | sentry 错误上报  |          | 提供 sentry 捕获请求异常并上报的简单实现.                                              |
+| [onlySend](#onlySend)           | 仅发送           |          | 提供 `navigator.sendBeacon` 方法封装, 实现页面离开时的埋点数据提交, 但这个需要后端支持 |
+| [mp](#mp)                       | 小程序请求适配器 |          | 扩展对小程序(微信、头条、qq 等)、跨平台框架(uni-app, taro)网络请求的支持               |
 
 ## 插件使用示例
 
