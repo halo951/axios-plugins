@@ -1,4 +1,4 @@
-import * as nock from 'nock'
+import nock from 'nock'
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 import { ILifecycleHookObject, IPlugin, ISharedCache } from '../src/intf'
 import { IGNORE_COVERAGE, useAxiosPlugin } from '../src/use-plugin'

@@ -1,4 +1,4 @@
-import * as nock from 'nock'
+import  nock from 'nock'
 import axios, { AxiosInstance } from 'axios'
 import { useAxiosPlugin } from '../../src/use-plugin'
 import { merge } from '../../src'
