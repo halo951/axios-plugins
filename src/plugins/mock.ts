@@ -25,12 +25,12 @@ export interface IMockOptions {
     /**
      * 是否启用插件
      *
-     * @type {'webpack'} 当enable值为 `webpack`时, 根据 `process.env.NODE_ENV === 'development'` 判断是否启用 mock 插件
-     * @type {'vite'} 当enable值为 `vite`时, 根据 `!!import.meta.env.DEV` 判断是否启用 mock 插件
-     *
+     * @type {boolean} 是否启用插件,
+     *  - 在 `vitejs` 环境下, 建议配置为 `enable: !!import.meta.env.DEV`
+     *  - 在 `webpack` 环境下, 建议配置为 `enable: process.env.NODE_ENV === 'development'`
      * @default {false}
      */
-    enable: boolean | 'webpack' | 'vite'
+    enable: boolean
 
     /**
      * 配置是否将请求映射到mock服务器
