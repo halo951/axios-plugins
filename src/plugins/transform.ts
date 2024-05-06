@@ -6,7 +6,7 @@ import { ILifecycleHook, IPlugin } from '../intf'
 export interface ITransformOptions {
     request?: ILifecycleHook<InternalAxiosRequestConfig>
     response?: ILifecycleHook<AxiosResponse>
-    captre?: ILifecycleHook<Error | AxiosError | any>
+    capture?: ILifecycleHook<Error | AxiosError | any>
 }
 
 /**
@@ -20,7 +20,7 @@ export const transform = (options: ITransformOptions = {}): IPlugin => {
         lifecycle: {
             transformRequest: options.request,
             postResponseTransform: options.response,
-            captureException: options.captre
+            captureException: options.capture
         }
     }
 }
