@@ -111,7 +111,7 @@ export const loading = (options: ILoadingOptions): IPlugin => {
         return res
     }
     /** 在捕获异常时关闭 */
-    const closeOnError = (reason: unknown, { shared }) => {
+    const closeOnError = <T>(reason: T, { shared }) => {
         // @ 从共享内存中创建或获取缓存对象
         const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
         cache.pending--
@@ -122,7 +122,7 @@ export const loading = (options: ILoadingOptions): IPlugin => {
                 onTrigger(false)
             }, delayClose ?? 0)
         }
-        throw reason
+        return reason
     }
     return {
         name: 'loading',

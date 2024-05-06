@@ -42,7 +42,7 @@ export const logger = (options: ILoggerOptions = {}): IPlugin => {
                 runWhen: () => options.error,
                 handler: (reason) => {
                     log.errorLogger(reason)
-                    throw reason
+                    return reason
                 }
             }
         }

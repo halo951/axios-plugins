@@ -18,7 +18,7 @@ export const sentryCapture = (options: ISentryOptions): IPlugin => {
         lifecycle: {
             captureException: (reason) => {
                 if (options?.sentry?.captureException) options.sentry.captureException(reason)
-                throw reason
+                return reason
             }
         }
     }

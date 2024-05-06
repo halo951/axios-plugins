@@ -107,7 +107,7 @@ export const retry = (options: IRetryOptions): IPlugin => {
             },
             captureException: {
                 runWhen,
-                async handler(reason, { origin, shared, axios }) {
+                async handler(reason, { origin, shared, axios }, { abortError }) {
                     // @ 计算请求hash
                     const hash: string = crh(origin)
                     // @ 从共享内存中创建或获取缓存对象
@@ -122,11 +122,11 @@ export const retry = (options: IRetryOptions): IPlugin => {
                         max = options.max
                     }
                     max = max ?? 0
-                    // ? 判断请求已达到最大重试次数, 达到时抛出异常.
+                    // ? 判断请求已达到最大重试次数, 达到时中断请求过程, 并抛出异常.
                     if (cache[hash] && cache[hash] >= max) {
                         // 删除重试记录
                         delete cache[hash]
-                        throw reason
+                        abortError(reason)
                     } else {
                         // 添加重试失败次数
                         if (!cache[hash]) {

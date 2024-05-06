@@ -153,7 +153,7 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
                  */
                 handler: async (reason, opt) => {
                     distributionMergeResponse(opt, (resolve) => resolve({ status: false, reason }))
-                    throw reason
+                    return reason
                 }
             },
             aborted: {

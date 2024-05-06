@@ -37,7 +37,7 @@ export const cancel = (): IPlugin => {
                     if (reason instanceof CanceledError) {
                         abortError(reason)
                     }
-                    throw reason
+                    return reason
                 }
             },
             completed({ origin, shared }) {

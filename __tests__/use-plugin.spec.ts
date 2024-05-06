@@ -394,6 +394,41 @@ describe('测试 `useAxiosPlugin()`', () => {
         await expect(request.get('/failure', { params: { n: 3 } })).resolves.toBeUndefined()
     })
 
+    test('valid - 验证多插件重复触发 `captureException`, 钩子能否正确捕获异常', async () => {
+        let n: number = 0
+        const plug: IPlugin = {
+            name: 'plug',
+            lifecycle: {
+                captureException: (e, { origin }) => {
+                    n++
+                    return n
+                }
+            }
+        }
+        const plug2: IPlugin = {
+            name: 'plug',
+            lifecycle: {
+                captureException: (e, { origin }) => {
+                    const { n } = origin.params
+                    switch (n) {
+                        case 1:
+                            return e
+                        case 2:
+                            throw e
+                        case 3:
+                            break
+                    }
+                }
+            }
+        }
+        const request = axios.create({ baseURL: BASE_URL })
+        useAxiosPlugin(request).plugin(plug)
+        // 捕获请求异常
+        await expect(request.get('/failure', { params: { n: 1 } })).resolves.toThrow(AxiosError)
+        await expect(request.get('/failure', { params: { n: 2 } })).rejects.toThrow(AxiosError)
+        await expect(request.get('/failure', { params: { n: 3 } })).resolves.toBeUndefined()
+    })
+
     test('valid - 验证 transformRequest 阶段的 `abort`, `abortError`, `slient` 的阻塞是否符合预期', async () => {
         let n: number = 0
         const plug: IPlugin = {
