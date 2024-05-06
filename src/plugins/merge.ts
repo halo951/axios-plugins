@@ -103,7 +103,7 @@ export const merge = (options: IMergeOptions = {}): IPlugin => {
 
     return {
         name: 'merge',
-        enforce: 'pre',
+        enforce: 'post',
         beforeRegister(axios) {
             // 参数合并
             Object.assign(options, { calcRequstHash: crh }, axios.defaults['merge'])
