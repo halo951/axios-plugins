@@ -1,6 +1,6 @@
 {
     "name": "axios-plugins",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "description": "用最小的侵入性, 为 axios 扩展更多的插件能力 (防抖、节流 等等)",
     "keywords": [
         "axios",
