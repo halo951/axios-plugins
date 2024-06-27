@@ -38,10 +38,9 @@
             "import": "./dist/core.mjs"
         },
         "./plugins/*": {
-            "import": "./src/plugins/*.ts"
-        },
-        "./utils/*": {
-            "import": "./src/utils/*.ts"
+            "types": "./dist/plugins/*.d.ts",
+            "require": "./dist/plugins/*.cjs",
+            "import": "./dist/plugins/*.mjs"
         }
     },
     "typesVersions": {
