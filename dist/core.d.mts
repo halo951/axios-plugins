@@ -1,5 +1,5 @@
-import { IPlugin } from './intf.mjs';
-export { AxiosInstanceExtension } from './intf.mjs';
+import { c as IUseAxiosPluginResult } from './shared/axios-plugins.0db5f57e.mjs';
+export { A as AxiosInstanceExtension, I as IPlugin } from './shared/axios-plugins.0db5f57e.mjs';
 import { AxiosInstance } from 'axios';
 
 /**
@@ -7,15 +7,6 @@ import { AxiosInstance } from 'axios';
  *
  * @description 通过链式调用方式, 为 `axios` 扩展插件支持.
  */
-declare const useAxiosPlugin: (axios: AxiosInstance) => {
-    /** 添加新插件 */
-    plugin(plug: IPlugin): typeof this;
-    /**
-     * 包装 `axios({ ... })`
-     *
-     * @description 使 `axiox({ ... })` 具备插件能力
-     */
-    wrap(): AxiosInstance;
-};
+declare const useAxiosPlugin: (axios: AxiosInstance) => IUseAxiosPluginResult;
 
-export { IPlugin, useAxiosPlugin };
+export { useAxiosPlugin };

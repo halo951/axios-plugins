@@ -91,12 +91,12 @@ export const mock = (options: IMockOptions = { enable: false }): IPlugin => {
                         // ? 否则, 则填充(替换) url
                         // TIP: 考虑到有些接口是配置的完整url, 此时比较合理的做法是替换url地址, 否则会因为存在完整url, 导致baseUrl选项失效.
                         if (!isAbsoluteURL(url)) {
-                            config.url = combineURLs(mockUrl, url)
+                            config.url = combineURLs(mockUrl!, url)
                         } else {
                             // 转换为url对象
                             const u = new URL(url)
                             // 去除origin, 并附加 mockURL
-                            config.url = combineURLs(mockUrl, url.replace(u.origin, ''))
+                            config.url = combineURLs(mockUrl!, url.replace(u.origin, ''))
                         }
                     }
                     return config

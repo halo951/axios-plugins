@@ -7,7 +7,15 @@ import {
     Axios,
     AxiosDefaults
 } from 'axios'
-import type { AxiosInstanceExtension, IHooksShareOptions, ILifecycleHookObject, IPlugin, ISharedCache } from './intf'
+import type {
+    AxiosInstanceExtension,
+    IHooksShareOptions,
+    ILifecycleHookObject,
+    IPlugin,
+    IPluginLifecycle,
+    ISharedCache,
+    IUseAxiosPluginResult
+} from './intf'
 import { klona } from 'klona/json'
 import { AbortChainController, AbortError, SlientError, createAbortChain } from './utils/create-abort-chain'
 
@@ -40,24 +48,24 @@ class AxiosExtension extends Axios {
         const vm = this
 
         /** 获取钩子函数 */
-        const getHook = <K extends keyof IPlugin['lifecycle']>(hookName: K) => {
+        const getHook = <K extends keyof IPluginLifecycle>(hookName: K): Array<ILifecycleHookObject<any>> => {
             return this.__plugins__
-                .filter((plug) => !!plug.lifecycle[hookName])
                 .map((plug) => {
-                    const hook: IPlugin['lifecycle'][K] = plug.lifecycle[hookName]
+                    const hook: IPluginLifecycle[K] | undefined = plug.lifecycle?.[hookName]
                     if (typeof hook === 'function') {
                         return {
                             runWhen: () => true,
                             handler: hook
                         } as ILifecycleHookObject<any>
-                    } else {
+                    } else if (hook) {
                         return hook as ILifecycleHookObject<any>
                     }
                 })
+                .filter((hook) => !!hook) as Array<ILifecycleHookObject<any>>
         }
 
         /** 是否存在钩子 */
-        const hasHook = <K extends keyof IPlugin['lifecycle']>(hookName: K): boolean => {
+        const hasHook = <K extends keyof IPluginLifecycle>(hookName: K): boolean => {
             return getHook(hookName).length > 0
         }
 
@@ -65,7 +73,7 @@ class AxiosExtension extends Axios {
          * 触发钩子函数
          * @description 遵循先进先出原则触发插件钩子
          */
-        const runHook = async <K extends keyof IPlugin['lifecycle'], T>(
+        const runHook = async <K extends keyof IPluginLifecycle, T>(
             hookName: K,
             reverse: boolean,
             arg1: T,
@@ -74,8 +82,12 @@ class AxiosExtension extends Axios {
         ): Promise<T> => {
             let hooks = reverse ? getHook(hookName).reverse() : getHook(hookName)
             for (const hook of hooks) {
-                if (hook.runWhen.call(hook.runWhen, arg1, arg2)) {
-                    arg1 = await hook.handler.call(hook, ...(arg2 ? [arg1, arg2, arg3] : [arg1, arg3]))
+                if (hook.runWhen.call(hook.runWhen, arg1, arg2 as IHooksShareOptions)) {
+                    arg1 = await hook.handler.call(
+                        hook,
+                        // @ts-ignore
+                        ...((arg2 as IHooksShareOptions) ? [arg1, arg2, arg3] : [arg1, arg3])
+                    )
                 }
             }
             return arg1
@@ -127,24 +139,24 @@ class AxiosExtension extends Axios {
 export const IGNORE_COVERAGE: ReadonlyArray<string> = ['prototype']
 
 /** 向 axios 实例注入插件生命周期钩子 */
-const injectPluginHooks = (axios: AxiosInstance | AxiosInstanceExtension): void => {
+const injectPluginHooks = (axios: AxiosInstanceExtension): void => {
     // ? 如果 axios 实例已经调用了 `useAxiosPlugin()`, 那么不需要重复注入
     if (axios['__plugins__']) {
         return
     }
     // @ 实例化扩展类
-    const extension = new AxiosExtension(axios.defaults, axios.interceptors)
+    const extension: AxiosExtension = new AxiosExtension(axios.defaults, axios.interceptors)
     // > 通过 `defineProperties` 将当前实例的请求映射到扩展类的方法上, 从而实现扩展的效果
     const properties = Object.getOwnPropertyNames(axios)
         .concat(['__shared__', '__plugins__'])
-        .filter((prop: string) => extension[prop] && !IGNORE_COVERAGE.includes(prop))
+        .filter((prop: string) => extension[prop as unknown as keyof AxiosExtension] && !IGNORE_COVERAGE.includes(prop))
         .reduce((properties: PropertyDescriptorMap, prop: string) => {
             properties[prop] = {
                 get() {
-                    return extension[prop]
+                    return extension[prop as unknown as keyof AxiosExtension]
                 },
                 set(v) {
-                    extension[prop] = v
+                    extension[prop as unknown as keyof AxiosExtension] = v
                 }
             }
             return properties
@@ -183,12 +195,14 @@ const injectPlugin = (axios: AxiosInstanceExtension, plug: IPlugin): void => {
  *
  * @description 通过链式调用方式, 为 `axios` 扩展插件支持.
  */
-export const useAxiosPlugin = (axios: AxiosInstance) => {
+export const useAxiosPlugin = (axios: AxiosInstance): IUseAxiosPluginResult => {
     // > 注入插件钩子
-    injectPluginHooks(axios)
+    injectPluginHooks(axios as AxiosInstanceExtension)
+
+    // > 返回函数链
     return {
         /** 添加新插件 */
-        plugin(plug: IPlugin): typeof this {
+        plugin(plug: IPlugin) {
             // > 注册插件前检查 (如果需要)
             plug.beforeRegister?.(axios as AxiosInstanceExtension)
             // > 挂载插件
@@ -200,7 +214,7 @@ export const useAxiosPlugin = (axios: AxiosInstance) => {
          *
          * @description 使 `axiox({ ... })` 具备插件能力
          */
-        wrap(): AxiosInstance {
+        wrap() {
             return new Proxy(axios, {
                 apply(_target, _thisArg, args: Array<any>) {
                     return axios.request.call(axios, args[0])

@@ -60,16 +60,16 @@ export const createAbortChain = <T>(initial?: T): Chain<T> => {
         }
     }
 
-    let onCapture!: (reason: any, controller: AbortChainController) => TResult | PromiseLike<TResult>
-    let onCompleted!: (controller: AbortChainController) => void | PromiseLike<void>
-    let onAbort!: (reason: AbortError) => TResult | PromiseLike<TResult>
+    let onCapture: ((reason: any, controller: AbortChainController) => TResult | PromiseLike<TResult>) | undefined
+    let onCompleted: ((controller: AbortChainController) => void | PromiseLike<void>) | undefined
+    let onAbort: ((reason: AbortError) => TResult | PromiseLike<TResult>) | undefined
     let res: T = initial as unknown as T
 
     return {
         /** 下一任务 */
         next(event) {
             chain.push(event)
-            return this
+            return this as Chain<TResult>
         },
         /** 捕获异常后触发 */
         capture(event) {
@@ -77,7 +77,7 @@ export const createAbortChain = <T>(initial?: T): Chain<T> => {
                 throw new Error('`onCapture` is registered')
             }
             onCapture = event
-            return this
+            return this as Chain<TResult>
         },
         /** 执行完成后触发 */
         completed(event) {
@@ -85,7 +85,7 @@ export const createAbortChain = <T>(initial?: T): Chain<T> => {
                 throw new Error('`onCompleted` is registered')
             }
             onCompleted = event
-            return this
+            return this as Chain<TResult>
         },
         /**
          * 执行中断后触发
@@ -97,13 +97,13 @@ export const createAbortChain = <T>(initial?: T): Chain<T> => {
                 throw new Error('`onAbort` is registered')
             }
             onAbort = event
-            return this
+            return this as Chain<TResult>
         },
         /** 停止添加并执行 */
         async done(): Promise<T> {
             /** 包装任务执行过程 */
             const run = async (): Promise<T> => {
-                let abortRes: AbortError
+                let abortRes: AbortError | undefined
                 try {
                     // > loop run next task
                     for (const task of chain) {

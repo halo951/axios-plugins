@@ -67,7 +67,7 @@ interface ICache {
     }
 }
 
-const mapping: Array<{ axios: AxiosInstance; patch: (patchCache: ICache) => void; clear: () => void }> = []
+const mapping: Array<{ axios: AxiosInstance; patch: (patchCache: Partial<ICache>) => void; clear: () => void }> = []
 
 /** 删除已有缓存 */
 export const removeCache = (axios: AxiosInstance, cacheKey: string): boolean => {
@@ -117,11 +117,12 @@ export const cache = (options: ICacheOptions = {}): IPlugin => {
     }
 
     const getCache = (): ICache => {
+        let str: string | null = storage.getItem(storageKey)
         // ? 如果没有缓存, 跳过
-        if (!storage.getItem(storageKey)) {
+        if (!str) {
             return {}
         }
-        const { version, cache } = JSON.parse(storage.getItem(storageKey))
+        const { version, cache } = JSON.parse(str)
         if (version !== options.version) {
             return {}
         } else {
@@ -129,7 +130,7 @@ export const cache = (options: ICacheOptions = {}): IPlugin => {
         }
     }
 
-    const patch = (patchCache: ICache): void => {
+    const patch = (patchCache: Partial<ICache>): void => {
         const cache = getCache()
         Object.assign(cache, patchCache)
         for (const key of Object.keys(cache)) {
@@ -165,11 +166,12 @@ export const cache = (options: ICacheOptions = {}): IPlugin => {
                  */
                 handler: async (config, { origin }, { abort }) => {
                     // @ 计算缓存的 key
-                    const key: string = getCacheKey(origin, origin.cache) ?? getCacheKey(origin, options.key)
+                    const key: string | undefined =
+                        getCacheKey(origin, origin.cache) ?? getCacheKey(origin, options.key)
                     // 获取缓存
                     const cache: ICache = getCache()
 
-                    if (cache[key]) {
+                    if (key && cache[key]) {
                         // ? 如果在有效期内, 中断请求并退出
                         if (Date.now() < cache[key].expires) {
                             abort(cache[key])
@@ -185,14 +187,17 @@ export const cache = (options: ICacheOptions = {}): IPlugin => {
                 runWhen,
                 handler: (response, { origin }) => {
                     // @ 计算缓存的 key
-                    const key: string = getCacheKey(origin, origin.cache) ?? getCacheKey(origin, options.key)
+                    const key: string | undefined =
+                        getCacheKey(origin, origin.cache) ?? getCacheKey(origin, options.key)
                     // patch to storage
-                    patch({
-                        [key]: {
-                            expires: (origin.cache as any)?.expires ?? options.expires,
-                            res: response
-                        }
-                    })
+                    if (key) {
+                        patch({
+                            [key]: {
+                                expires: (origin.cache as any)?.expires ?? options.expires,
+                                res: response
+                            }
+                        })
+                    }
                     return response
                 }
             }

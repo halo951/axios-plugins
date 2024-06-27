@@ -6,8 +6,9 @@
 
 > 用最小的侵入性, 为 axios 扩展更多的插件能力 (防抖、节流 等等)
 
-> Tips: 作者比较懒, 偶尔才会翻一下 issues ~,~  
+> Tips: 作者比较懒, 偶尔才会翻一下 issues ~,~
 > 一般这个库会根据我的使用情况慢慢更新, 如果有啥 bug 微信找我吧, 我尽量去改一下, 微信号: halo_951 (顺便备注说明下问题)
+> 更新日志在 [CHANGELOG.md](./CHANGELOG.md)
 
 ## 特性
 
@@ -123,10 +124,10 @@ useAxiosPlugin(axios).plugin(plug({}))
 | [pathParams](#pathParams)       | 路由参数处理     | ★        | 扩展对 Restful API 规范的路由参数支持                                                  |
 | [sign](#sign)                   | 参数签名         |          | 提供请求防篡改能力, 这个功能需要搭配后端逻辑实现                                       |
 | [loading](#loading)             | 全局 loading     | ★        | 提供全局 loading 统一控制能力, 减少每个加载方法都需要独立 loading 控制的工作量         |
-| [logger](#logger)               | 日志             |          | 自定义请求过程日志打印                                                                 |
 | [sentryCapture](#sentryCapture) | sentry 错误上报  |          | 提供 sentry 捕获请求异常并上报的简单实现.                                              |
 | [onlySend](#onlySend)           | 仅发送           |          | 提供 `navigator.sendBeacon` 方法封装, 实现页面离开时的埋点数据提交, 但这个需要后端支持 |
 | [mp](#mp)                       | 小程序请求适配器 |          | 扩展对小程序(微信、头条、qq 等)、跨平台框架(uni-app, taro)网络请求的支持               |
+| [auth](#auth)                   | 请求前鉴权       |          | 在发送请求前, 检查用户是否登录, 等待用户登录后再发起请求 (0.4.1 新增)                  |
 
 ## 插件使用示例
 
@@ -375,30 +376,6 @@ loading({ delay: 200, delayClose: 200 })
 request.post('/api', {}, { loading: false })
 ```
 
-#### logger
-
-```typescript
-import { useAxiosPlugin } from 'axios-plugin/core'
-import { logger } from 'axios-plugins/plugins/logger'
-
-const request = axios.create({})
-
-// 添加插件
-useAxiosPlugin(request).plugin(
-    logger({
-        // 开启 请求参数打印
-        request: true,
-        // 开启 响应参数打印
-        response: true,
-        // 开启异常信息打印
-        error: true
-    })
-)
-
-// 自定义打印配置 (参考: https://www.npmjs.com/package/axios-logger)
-logger({ config: {} })
-```
-
 #### mock
 
 > 建议借助三方工具(如: apifox, apipost 等) 实现 mock 能力
@@ -548,6 +525,25 @@ mp({
         /** ... */
     }
 })
+```
+
+#### auth
+
+```typescript
+import { useAxiosPlugin } from 'axios-plugin/core'
+import { auth } from 'axios-plugins/plugins/auth'
+
+const request = axios.create({})
+
+// 添加插件
+useAxiosPlugin(request).plugin(
+    auth({
+        login: async (request): boolean => {
+            // TODO check login
+            return true
+        }
+    })
+)
 ```
 
 ## FAQ

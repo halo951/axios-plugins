@@ -91,7 +91,7 @@ export const sign = (options: ISignOptions = {}): IPlugin => {
                     })
                 }
                 // 重新转化为 Object
-                let obj = entries.reduce((o, [key, value]) => {
+                let obj = entries.reduce((o: { [key: string]: any }, [key, value]) => {
                     o[key] = value
                     return o
                 }, {})

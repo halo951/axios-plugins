@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, CancelToken, CancelTokenSource, CanceledError } from 'axios'
+import axios, { AxiosInstance, CancelTokenSource, CanceledError } from 'axios'
 import { AxiosInstanceExtension, IPlugin, ISharedCache } from '../intf'
 import { createOrGetCache } from '../utils/create-cache'
 
@@ -27,7 +27,7 @@ export const cancel = (): IPlugin => {
                     origin.cancelToken = source.token
                     // > 将终止请求的方法放到缓存中
                     cache.push(source)
-                    if (shared) return config
+                    return config
                 }
             },
             captureException: {
@@ -43,7 +43,7 @@ export const cancel = (): IPlugin => {
             completed({ origin, shared }) {
                 // @ 从共享内存中创建或获取缓存对象
                 const cache: SharedCache['cancel'] = createOrGetCache(shared, 'cancel', [])
-                const index: number = cache.findIndex((c) => c.token === origin.cancelToken)
+                const index: number = cache.findIndex((c) => c?.token === origin.cancelToken)
                 // clear
                 if (index !== -1) cache[index] = null
             }
@@ -56,7 +56,7 @@ export const cancelAll = (axios: AxiosInstance, message?: string) => {
     const shared = (axios as AxiosInstanceExtension).__shared__ as SharedCache
     if (shared.cancel instanceof Array) {
         while (shared.cancel.length > 0) {
-            const { cancel } = shared.cancel.pop()
+            const { cancel } = shared.cancel.pop()!
             cancel(message ?? '请求终止')
         }
     }

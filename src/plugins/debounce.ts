@@ -83,7 +83,7 @@ export const debounce = (options: IDebounceOptions = {}): IPlugin => {
                 runWhen,
                 handler: async (config, { origin, shared }) => {
                     // @ 计算请求hash
-                    const hash: string = options.calcRequstHash(origin)
+                    const hash: string = options.calcRequstHash!(origin)
                     // @ 从共享内存中创建或获取缓存对象
                     const cache: SharedCache['debounce'] = createOrGetCache(shared, 'debounce')
                     // ? 判断是否重复请求
@@ -105,14 +105,14 @@ export const debounce = (options: IDebounceOptions = {}): IPlugin => {
                 },
                 handler: async ({ origin, shared }) => {
                     // @ 计算请求hash
-                    const hash: string = options.calcRequstHash(origin)
+                    const hash: string = options.calcRequstHash!(origin)
                     // @ 从共享内存中创建或获取缓存对象
                     const cache: SharedCache['debounce'] = createOrGetCache(shared, 'debounce')
                     // @ 获取延时时间
                     const delayTime: number = getDelayTime(0, origin.debounce, options.delay)
                     // ? 判断cache中, 是否包含阻塞的请求
                     if (cache[hash]?.length) {
-                        const { resolve } = cache[hash].shift()
+                        const { resolve } = cache[hash].shift()!
                         // > 在延时结束后, 触发缓存中被拦截下来的请求
                         delay(delayTime).then(() => resolve())
                     } else {

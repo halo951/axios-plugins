@@ -113,13 +113,14 @@ export const throttle = (options: IThrottleOptions = {}): IPlugin => {
                 runWhen,
                 handler: async (config, { origin, shared }, { abort, abortError, slient }) => {
                     // @ 计算请求hash
-                    const hash: string = options.calcRequstHash(origin)
+                    const hash: string = options.calcRequstHash!(origin)
                     // @ 从共享内存中创建或获取缓存对象
                     const cache: ISharedThrottleCache['throttle'] = createOrGetCache(shared, 'throttle')
                     // ? 判断是否重复请求
                     if (cache[hash]) {
                         let message!: string
-                        let giveUp: GiveUpRule = (config.throttle as IThrottleOptions)?.giveUp ?? options.giveUp
+                        let giveUp: GiveUpRule | undefined =
+                            (config.throttle as IThrottleOptions)?.giveUp ?? options.giveUp
                         let throttleErrorMessage: IThrottleOptions['throttleErrorMessage'] =
                             (config.throttle as IThrottleOptions)?.throttleErrorMessage ?? options.throttleErrorMessage
                         // ! 触发 `abort`, `abortError`, `slient` 时, 将抛出相应异常, 中止请求
@@ -158,7 +159,7 @@ export const throttle = (options: IThrottleOptions = {}): IPlugin => {
                 },
                 handler: async ({ origin, shared }) => {
                     // @ 计算请求hash
-                    const hash: string = options.calcRequstHash(origin)
+                    const hash: string = options.calcRequstHash!(origin)
                     // @ 从共享内存中创建或获取缓存对象
                     const cache: ISharedThrottleCache['throttle'] = createOrGetCache(shared, 'throttle')
                     // ? 如果配置了延时函数, 那么执行延时等待

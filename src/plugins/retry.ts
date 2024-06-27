@@ -3,6 +3,7 @@ import { IHooksShareOptions, IPlugin, ISharedCache } from '../intf'
 import { createOrGetCache } from '../utils/create-cache'
 import { createUrlFilter, Filter, FilterPattern } from '../utils/create-filter'
 import { defaultCalcRequestHash as crh } from '../utils/calc-hash'
+
 declare module 'axios' {
     interface CreateAxiosDefaults {
         /** 配置重试策略 */
@@ -99,7 +100,7 @@ export const retry = (options: IRetryOptions): IPlugin => {
                         isExceptionRequest = options.isExceptionRequest
                     }
                     // > 通过自定义的异常判断方法, 判断请求是否需要重试
-                    if (isExceptionRequest(response, opts)) {
+                    if (isExceptionRequest?.(response, opts)) {
                         throw new RetryError()
                     }
                     return response

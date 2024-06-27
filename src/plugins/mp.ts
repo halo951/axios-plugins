@@ -47,7 +47,7 @@ export class MpRequestError extends Error {
     constructor(err: { errMsg: string; errno: number }) {
         super(err.errMsg)
         this.errMsg = err.errMsg
-        this.errno = this.errno
+        this.errno = err.errno
     }
 }
 /**
@@ -68,24 +68,25 @@ export const mp = (options: ILoadingOptions): IPlugin => {
                 }
                 config.adapter = (config: InternalAxiosRequestConfig): AxiosPromise => {
                     return new Promise((resolve, reject) => {
-                        let env: string = mapping[options.env] ?? options.env
-                        let sys = globalThis[env]
+                        let env: string = mapping[options.env as keyof typeof mapping] ?? options.env
+                        let sys: any = (globalThis as any)[env]
                         if (!sys) {
-                            reject(new Error(`插件不可用, 未找到 '${env}' 全局变量`))
+                            return reject(new Error(`插件不可用, 未找到 '${env}' 全局变量`))
                         }
+                        if (!config.url) return reject(new Error("缺少必填参数 'url'"))
                         // > 补全路径
-                        if (!isAbsoluteURL(config.url)) {
+                        if (!isAbsoluteURL(config.url) && config.baseURL) {
                             config.url = combineURLs(config.baseURL, config.url)
                         }
                         sys.request({
-                            method: config.method.toUpperCase() as any,
+                            method: config.method?.toUpperCase(),
                             url: config.url,
                             data: Object.assign({}, config.data, config.params),
                             header: config.headers,
                             timeout: config.timeout,
                             // 合并公共参数
                             ...options.config,
-                            success: (result): void => {
+                            success: (result: any): void => {
                                 resolve({
                                     data: result.data,
                                     status: result.statusCode,
@@ -97,7 +98,7 @@ export const mp = (options: ILoadingOptions): IPlugin => {
                                     config: config
                                 })
                             },
-                            fail: (err) => {
+                            fail: (err: any) => {
                                 reject(new MpRequestError(err))
                             }
                         })

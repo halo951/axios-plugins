@@ -1,11 +1,11 @@
 // @ts-nocheck
 /**
-* axios-plugins@0.3.4
+* axios-plugins@0.4.1
 *
 * Copyright (c) 2024 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Mon May 06 2024 17:37:15 GMT+0800 (中国标准时间)
+* @build Thu Jun 27 2024 19:13:04 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -147,17 +147,17 @@ class AxiosExtension extends axios.Axios {
     const originRequest = this.request;
     const vm = this;
     const getHook = (hookName) => {
-      return this.__plugins__.filter((plug) => !!plug.lifecycle[hookName]).map((plug) => {
-        const hook = plug.lifecycle[hookName];
+      return this.__plugins__.map((plug) => {
+        const hook = plug.lifecycle?.[hookName];
         if (typeof hook === "function") {
           return {
             runWhen: () => true,
             handler: hook
           };
-        } else {
+        } else if (hook) {
           return hook;
         }
-      });
+      }).filter((hook) => !!hook);
     };
     const hasHook = (hookName) => {
       return getHook(hookName).length > 0;
@@ -166,7 +166,10 @@ class AxiosExtension extends axios.Axios {
       let hooks = reverse ? getHook(hookName).reverse() : getHook(hookName);
       for (const hook of hooks) {
         if (hook.runWhen.call(hook.runWhen, arg1, arg2)) {
-          arg1 = await hook.handler.call(hook, ...arg2 ? [arg1, arg2, arg3] : [arg1, arg3]);
+          arg1 = await hook.handler.call(
+            hook,
+            ...arg2 ? [arg1, arg2, arg3] : [arg1, arg3]
+          );
         }
       }
       return arg1;

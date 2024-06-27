@@ -16,11 +16,11 @@ export { cancel, cancelAll } from './plugins/cancel'
 export { cache } from './plugins/cache'
 /** 请求过程: 参数前置处理和响应后置处理 */
 export { transform } from './plugins/transform'
+/** 请求过程: 请求发送前登录态校验 */
+export { auth } from './plugins/auth'
 
 /** 工具: 全局 loading 控制 */
 export { loading } from './plugins/loading'
-/** 工具: 请求日志 */
-export { logger } from './plugins/logger'
 /** 工具: mock */
 export { mock } from './plugins/mock'
 /** 工具: 多环境配置 */
@@ -39,11 +39,11 @@ export { onlySend } from './plugins/only-send'
 /** 适配器: 小程序、跨平台框架网络请求支持 */
 export { mp } from './plugins/mp'
 
+export * as Auth from './plugins/auth'
 export * as Cache from './plugins/cache'
 export * as Cancel from './plugins/cancel'
 export * as Debounce from './plugins/debounce'
 export * as Loading from './plugins/loading'
-export * as Logger from './plugins/logger'
 export * as Merge from './plugins/merge'
 export * as Mock from './plugins/mock'
 export * as Mp from './plugins/mp'

@@ -40,8 +40,9 @@ export const onlySend = (options: IOnlySendOptions = {}): IPlugin => {
                     }
                 } else {
                     config.adapter = async (config: InternalAxiosRequestConfig): AxiosPromise => {
+                        if (!config.url) throw new Error("缺少必填参数 'url'")
                         // > 补全路径
-                        if (!isAbsoluteURL(config.url)) {
+                        if (!isAbsoluteURL(config.url) && config.baseURL) {
                             config.url = combineURLs(config.baseURL, config.url)
                         }
                         const form = new FormData()

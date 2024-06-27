@@ -82,7 +82,7 @@ export const loading = (options: ILoadingOptions): IPlugin => {
         }
     }
     /** 打开loading */
-    const open = <T>(req: T, { shared }): T => {
+    const open = <T>(req: T, { shared }: { shared: ISharedCache }): T => {
         // @ 从共享内存中创建或获取缓存对象
         const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
         cache.pending ? cache.pending++ : (cache.pending = 1)
@@ -97,7 +97,7 @@ export const loading = (options: ILoadingOptions): IPlugin => {
         return req
     }
     /** 关闭loading */
-    const close = <T>(res: T, { shared }): T => {
+    const close = <T>(res: T, { shared }: { shared: ISharedCache }): T => {
         // @ 从共享内存中创建或获取缓存对象
         const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
         cache.pending--
@@ -111,7 +111,7 @@ export const loading = (options: ILoadingOptions): IPlugin => {
         return res
     }
     /** 在捕获异常时关闭 */
-    const closeOnError = <T>(reason: T, { shared }) => {
+    const closeOnError = <T>(reason: T, { shared }: { shared: ISharedCache }) => {
         // @ 从共享内存中创建或获取缓存对象
         const cache: SharedCache['loading'] = createOrGetCache(shared, 'loading')
         cache.pending--

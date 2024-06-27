@@ -2,6 +2,8 @@
 
 > Extend more plugin capabilities (such as debounce and throttle, etc.) for axios with minimal impact.
 
+> Tips: The English version of the document may not be updated in a timely manner, please refer to [README.md](./README.md) for accuracy
+
 ## Features
 
 -   [Lightweight] The core package size is 1.37kb/gziped, complete package size is 5.88kb/gziped, supports TreeShaking and single plugin reference.
@@ -79,7 +81,6 @@ useAxiosPlugin(request).plugin(loading())
 | cache                 | Stores the response content of the request and returns it for the next request (within cache expiration time)                                  |
 | envs                  | Normalizes axios environment configuration tool                                                                                                |
 | loading               | Provides a unified control capability for global loading to reduce the workload of independent loading control for each loading method         |
-| logger                | Custom request process log printing                                                                                                            |
 | mock                  | Provides global or single interface request mock capability                                                                                    |
 | normalize             | Filters out undefined, null, and other parameters generated during the request process                                                         |
 | pathParams            | Expands support for Restful API specification of route parameters                                                                              |
@@ -331,30 +332,6 @@ loading({ delay: 200, delayClose: 200 })
 
 // 指定请求禁用 loading
 request.post('/api', {}, { loading: false })
-```
-
-#### logger
-
-```typescript
-import { useAxiosPlugin } from 'axios-plugin/core'
-import { logger } from 'axios-plugins/plugins/logger'
-
-const request = axios.create({})
-
-// 添加插件
-useAxiosPlugin(request).plugin(
-    logger({
-        // 开启 请求参数打印
-        request: true,
-        // 开启 响应参数打印
-        response: true,
-        // 开启异常信息打印
-        error: true
-    })
-)
-
-// 自定义打印配置 (参考: https://www.npmjs.com/package/axios-logger)
-logger({ config: {} })
 ```
 
 #### mock
