@@ -5,9 +5,6 @@
 <p align="center"><a href="./README.md">中文</a> | <a href="./README.en-US.md">English</a></p>
 
 > 用最小的侵入性, 为 axios 扩展更多的插件能力 (防抖、节流 等等)
-
-> Tips: 作者比较懒, 偶尔才会翻一下 issues ~,~
-> 一般这个库会根据我的使用情况慢慢更新, 如果有啥 bug 微信找我吧, 我尽量去改一下, 微信号: halo_951 (顺便备注说明下问题)
 > 更新日志在 [CHANGELOG.md](./CHANGELOG.md)
 
 ## 特性
