@@ -1,42 +1,42 @@
 // @ts-nocheck
 /**
-* axios-plugins@0.4.1
+* axios-plugins@0.5.2
 *
 * Copyright (c) 2024 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Thu Jun 27 2024 19:13:04 GMT+0800 (中国标准时间)
+* @build Thu Aug 15 2024 15:40:17 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
 'use strict';
 
 const core = require('./core.cjs');
-const plugins_debounce = require('./shared/axios-plugins.62d87f4c.cjs');
-const plugins_throttle = require('./shared/axios-plugins.50cd44a3.cjs');
-const plugins_merge = require('./shared/axios-plugins.5ef230b7.cjs');
-const plugins_retry = require('./shared/axios-plugins.3d2a98c2.cjs');
-const plugins_cancel = require('./shared/axios-plugins.575d5c55.cjs');
-const plugins_cache = require('./shared/axios-plugins.de827d31.cjs');
-const plugins_transform = require('./shared/axios-plugins.9d93bc56.cjs');
-const plugins_auth = require('./shared/axios-plugins.aa106bfe.cjs');
-const plugins_loading = require('./shared/axios-plugins.f2d1e23c.cjs');
-const plugins_mock = require('./shared/axios-plugins.704dc31b.cjs');
+const plugins_debounce = require('./shared/axios-plugins.c763030a.cjs');
+const plugins_throttle = require('./shared/axios-plugins.25bc262c.cjs');
+const plugins_merge = require('./shared/axios-plugins.190d0877.cjs');
+const plugins_retry = require('./shared/axios-plugins.bb375df0.cjs');
+const plugins_cancel = require('./shared/axios-plugins.3fcdefec.cjs');
+const plugins_cache = require('./shared/axios-plugins.260afe53.cjs');
+const plugins_transform = require('./shared/axios-plugins.197f6919.cjs');
+const plugins_auth = require('./shared/axios-plugins.8e3e259a.cjs');
+const plugins_loading = require('./shared/axios-plugins.4c68dbb8.cjs');
+const plugins_mock = require('./shared/axios-plugins.bea99eeb.cjs');
 const plugins_envs = require('./plugins/envs.cjs');
-const plugins_normalize = require('./shared/axios-plugins.c93568b6.cjs');
-const plugins_pathParams = require('./shared/axios-plugins.4669cd9c.cjs');
-const plugins_sign = require('./shared/axios-plugins.58884d10.cjs');
+const plugins_normalize = require('./shared/axios-plugins.e1231901.cjs');
+const plugins_pathParams = require('./shared/axios-plugins.d7de9c9c.cjs');
+const plugins_sign = require('./shared/axios-plugins.5e5074a2.cjs');
 const plugins_sentryCapture = require('./plugins/sentry-capture.cjs');
-const plugins_onlySend = require('./shared/axios-plugins.f62507ad.cjs');
-const plugins_mp = require('./shared/axios-plugins.5314a793.cjs');
+const plugins_onlySend = require('./shared/axios-plugins.3e2ba27a.cjs');
+const plugins_mp = require('./shared/axios-plugins.018254ae.cjs');
 require('axios');
 require('klona/json');
-require('./shared/axios-plugins.651a7bc4.cjs');
+require('./shared/axios-plugins.39eb5fdb.cjs');
 require('crypto-js');
-require('./shared/axios-plugins.c1cac532.cjs');
-require('./shared/axios-plugins.a9095fd4.cjs');
-require('./shared/axios-plugins.ac3f99b6.cjs');
-require('./shared/axios-plugins.bec05e2f.cjs');
+require('./shared/axios-plugins.077877ce.cjs');
+require('./shared/axios-plugins.ee9b999e.cjs');
+require('./shared/axios-plugins.bc1c1063.cjs');
+require('./shared/axios-plugins.82a085c5.cjs');
 require('qs');
 
 

@@ -76,7 +76,7 @@ export const debounce = (options: IDebounceOptions = {}): IPlugin => {
         enforce: 'pre',
         beforeRegister(axios) {
             // 参数合并
-            Object.assign(options, { calcRequstHash: crh }, axios.defaults['debounce'])
+            options = Object.assign({ calcRequstHash: crh }, options, axios.defaults['debounce'])
         },
         lifecycle: {
             preRequestTransform: {

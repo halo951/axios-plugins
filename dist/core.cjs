@@ -1,11 +1,11 @@
 // @ts-nocheck
 /**
-* axios-plugins@0.4.1
+* axios-plugins@0.5.2
 *
 * Copyright (c) 2024 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Thu Jun 27 2024 19:13:04 GMT+0800 (中国标准时间)
+* @build Thu Aug 15 2024 15:40:17 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */

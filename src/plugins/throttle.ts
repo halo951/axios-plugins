@@ -106,7 +106,7 @@ export const throttle = (options: IThrottleOptions = {}): IPlugin => {
         enforce: 'pre',
         beforeRegister(axios) {
             // 参数合并
-            Object.assign(options, { calcRequstHash: crh }, axios.defaults['throttle'])
+            options = Object.assign({ calcRequstHash: crh }, options, axios.defaults['throttle'])
         },
         lifecycle: {
             preRequestTransform: {
