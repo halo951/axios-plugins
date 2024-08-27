@@ -99,7 +99,7 @@ class AxiosExtension extends Axios {
             const share: IHooksShareOptions = { origin, shared: this.__shared__, axios: vm as unknown as AxiosInstance }
             return await createAbortChain(config)
                 .next((config, controller) => runHook('preRequestTransform', false, config, share, controller))
-                .next((config) => <PromiseLike<R>>originRequest.call(vm, config))
+                .next(async (config) => await (<PromiseLike<R>>originRequest.call(vm, config)))
                 .next((response, controller) => runHook('postResponseTransform', true, response, share, controller))
                 .capture(async (e, controller) => {
                     // ? 如果添加了捕获异常钩子, 那么当钩子函数 `return void` 时, 将返回用户原始响应信息
