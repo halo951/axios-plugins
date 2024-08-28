@@ -126,7 +126,6 @@ export const loading = (options: ILoadingOptions): IPlugin => {
     }
     return {
         name: 'loading',
-        enforce: 'pre',
         lifecycle: {
             preRequestTransform: { runWhen, handler: open },
             postResponseTransform: { runWhen, handler: close },

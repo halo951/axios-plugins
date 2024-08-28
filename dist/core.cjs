@@ -1,11 +1,11 @@
 // @ts-nocheck
 /**
-* axios-plugins@0.5.2
+* axios-plugins@0.5.4
 *
 * Copyright (c) 2024 halo951 <https://github.com/halo951>
 * Released under MIT License
 *
-* @build Thu Aug 15 2024 15:40:17 GMT+0800 (中国标准时间)
+* @build Wed Aug 28 2024 19:53:48 GMT+0800 (中国标准时间)
 * @author halo951(https://github.com/halo951)
 * @license MIT
 */
@@ -177,7 +177,7 @@ class AxiosExtension extends axios.Axios {
     this.request = async function(config2) {
       const origin = json.klona(config2);
       const share = { origin, shared: this.__shared__, axios: vm };
-      return await createAbortChain(config2).next((config3, controller) => runHook("preRequestTransform", false, config3, share, controller)).next((config3) => originRequest.call(vm, config3)).next((response, controller) => runHook("postResponseTransform", true, response, share, controller)).capture(async (e, controller) => {
+      return await createAbortChain(config2).next((config3, controller) => runHook("preRequestTransform", false, config3, share, controller)).next(async (config3) => await originRequest.call(vm, config3)).next((response, controller) => runHook("postResponseTransform", true, response, share, controller)).capture(async (e, controller) => {
         if (hasHook("captureException")) {
           return await runHook("captureException", true, e, share, controller);
         } else {

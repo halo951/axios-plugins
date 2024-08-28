@@ -77,7 +77,6 @@ export const retry = (options: IRetryOptions): IPlugin => {
     }
     return {
         name: 'retry',
-        enforce: 'pre',
         beforeRegister(axios) {
             // 参数合并
             Object.assign(options, axios.defaults['retry'])

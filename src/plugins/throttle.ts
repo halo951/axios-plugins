@@ -103,7 +103,6 @@ export const throttle = (options: IThrottleOptions = {}): IPlugin => {
     }
     return {
         name: 'throttle',
-        enforce: 'pre',
         beforeRegister(axios) {
             // 参数合并
             options = Object.assign({ calcRequstHash: crh }, options, axios.defaults['throttle'])

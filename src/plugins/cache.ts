@@ -150,7 +150,6 @@ export const cache = (options: ICacheOptions = {}): IPlugin => {
 
     return {
         name: 'cache',
-        enforce: 'pre',
         beforeRegister(axios) {
             // 参数合并
             Object.assign(options, axios.defaults['cache'])
