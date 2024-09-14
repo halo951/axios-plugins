@@ -441,7 +441,7 @@ useAxiosPlugin(request).plugin(
 ### pathParams
 
 ```typescript
-import { useAxiosPlugin } from 'axios-plugin/core'
+import { useAxiosPlugin } from 'axios-plugins/core'
 import { pathParams } from 'axios-plugins/plugins/pathParams'
 
 const request = axios.create({})
@@ -456,7 +456,7 @@ pathParams({ form: 'params' })
 #### sign
 
 ```typescript
-import { useAxiosPlugin } from 'axios-plugin/core'
+import { useAxiosPlugin } from 'axios-plugins/core'
 import { sign } from 'axios-plugins/plugins/sign'
 
 const request = axios.create({})
@@ -482,7 +482,7 @@ sign({
 #### sentryCapture
 
 ```typescript
-import { useAxiosPlugin } from 'axios-plugin/core'
+import { useAxiosPlugin } from 'axios-plugins/core'
 import { sign } from 'axios-plugins/plugins/sign'
 import * as sentry from '@sentry/browser' // or @sentry/vue or @sentry/react ...
 
@@ -495,7 +495,7 @@ useAxiosPlugin(request).plugin(sentryCapture({ sentry }))
 #### onlySend
 
 ```typescript
-import { useAxiosPlugin } from 'axios-plugin/core'
+import { useAxiosPlugin } from 'axios-plugins/core'
 import { onlySend } from 'axios-plugins/plugins/onlySend'
 
 const request = axios.create({})
@@ -510,7 +510,7 @@ onlySend({ noSupport: 'error' })
 #### mp
 
 ```typescript
-import { useAxiosPlugin } from 'axios-plugin/core'
+import { useAxiosPlugin } from 'axios-plugins/core'
 import { mp } from 'axios-plugins/plugins/mp'
 
 const request = axios.create({})
@@ -531,7 +531,7 @@ mp({
 #### auth
 
 ```typescript
-import { useAxiosPlugin } from 'axios-plugin/core'
+import { useAxiosPlugin } from 'axios-plugins/core'
 import { auth } from 'axios-plugins/plugins/auth'
 
 const request = axios.create({})
