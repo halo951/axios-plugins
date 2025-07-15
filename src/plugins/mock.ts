@@ -82,7 +82,7 @@ export const mock = (options: IMockOptions = { enable: false }): IPlugin => {
                     }
                 },
                 handler: (config) => {
-                    const { mockUrl } = options
+                    const mockUrl = config?.mock?.mockUrl ?? options.mockUrl
                     const { url } = config
                     if (!url) {
                         // ? 如果未配置请求地址, 那么替换成 `baseUrl`
