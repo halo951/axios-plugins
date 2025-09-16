@@ -60,7 +60,7 @@
     "scripts": {
         "clean": "rimraf dist && rimraf typings",
         "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
-        "build": "unbuild",
+        "build": "vite build",
         "format": "prettier -w **.ts **.md **.json"
     },
     "peerDependencies": {
@@ -72,7 +72,9 @@
         "@types/qs": "^6.9.15",
         "axios": "^1.7.2",
         "nock": "^13.5.4",
-        "typescript": "^5.4.5"
+        "typescript": "^5.4.5",
+        "vite": "^7.1.5",
+        "vite-plugin-dts": "^4.5.4"
     },
     "dependencies": {
         "crypto-js": "^4.2.0",
